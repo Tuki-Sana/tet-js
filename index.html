@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>テトリス</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="container">
+    <!-- スタート画面 -->
+    <div id="start-screen" class="screen active">
+      <h1>🎮 テトリス 🎮</h1>
+      <p>落ちてくるテトラミノを操作してラインを消去しよう！</p>
+      
+      <h3>📋 操作方法</h3>
+      <table class="controls-table">
+        <tr><th>操作</th><th>キー</th></tr>
+        <tr><td>左に移動</td><td>A</td></tr>
+        <tr><td>右に移動</td><td>D</td></tr>
+        <tr><td>下に移動（ソフトドロップ）</td><td>S</td></tr>
+        <tr><td>回転</td><td>W</td></tr>
+        <tr><td>ゲーム中断</td><td>P または ESCキー</td></tr>
+      </table>
+      
+      <h3>📊 得点システム</h3>
+      <div class="bonus-list">
+        <ul>
+          <li><strong>1行消去（シングル）</strong>: 100点 × レベル</li>
+          <li><strong>2行消去（ダブル）</strong>: 300点 × レベル</li>
+          <li><strong>3行消去（トリプル）</strong>: 500点 × レベル</li>
+          <li><strong>4行消去（テトリス）</strong>: 800点 × レベル</li>
+        </ul>
+        <p class="score-note">※レベルはテトラミノが積み上がるごとに上昇し、落下速度とスコア倍率が増加します</p>
+      </div>
+      
+      <button onclick="startGame()">ゲーム開始</button>
+    </div>
+
+    <!-- ゲーム画面 -->
+    <div id="game-screen" class="screen">
+      <div class="container">
+        <div id="score-board">
+          スコア: <span id="score">0</span><br>
+          レベル: <span id="level">1</span><br>
+          最高スコア: <span id="high-score">0</span>
+        </div>
+        <div class="game-area">
+          <canvas id="game" width="300" height="600"></canvas>
+          <div class="side-panel">
+            <div class="next-label">NEXT</div>
+            <canvas id="next-piece" width="120" height="120"></canvas>
+            <div class="bonus-list">
+              <h3>ボーナススコア</h3>
+              <ul>
+                <li>1行: 100 × <span id="current-level-1">1</span></li>
+                <li>2行: 300 × <span id="current-level-2">1</span></li>
+                <li>3行: 500 × <span id="current-level-3">1</span></li>
+                <li>4行: 800 × <span id="current-level-4">1</span></li>
+              </ul>
+            </div>
+            <div class="game-controls">
+              <button onclick="pauseGame()">一時停止</button>
+              <button class="danger" onclick="quitToMenu()">メニューに戻る</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ゲームオーバー画面 -->
+  <div id="game-over" class="modal">
+    <div class="modal-content">
+      <h2>🎯 ゲームオーバー 🎯</h2>
+      <p>最終スコア: <span id="final-score">0</span></p>
+      <p>到達レベル: <span id="final-level">1</span></p>
+      <button onclick="restartGame()">再挑戦</button>
+      <button class="danger" onclick="backToMenu()">メニューに戻る</button>
+    </div>
+  </div>
+
+  <!-- 一時停止画面 -->
+  <div id="pause-screen" class="modal">
+    <div class="modal-content">
+      <h2>⏸️ 一時停止中 ⏸️</h2>
+      <button onclick="resumeGame()">ゲーム再開</button>
+      <button onclick="restartGame()">最初からやり直し</button>
+      <button class="danger" onclick="backToMenu()">メニューに戻る</button>
+    </div>
+  </div>
+
+  <script src="js/tetris.js"></script>
+</body>
+</html>
