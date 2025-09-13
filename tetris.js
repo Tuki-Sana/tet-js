@@ -227,33 +227,33 @@ class Tetris {
 let tetris = null;
 
 // ★追加：画面管理関数
-function showScreen(screenId) {
+window.showScreen = function(screenId) {
   document.querySelectorAll('.screen').forEach(screen => {
     screen.classList.remove('active');
   });
   document.getElementById(screenId).classList.add('active');
 }
 
-function startGame() {
+window.startGame = function() {
   showScreen('game-screen');
   const canvas = document.getElementById('game');
   tetris = new Tetris(canvas);
   tetris.start();
 }
 
-function pauseGame() {
+window.pauseGame = function() {
   if (tetris && !tetris.gameOver) {
     tetris.pause();
   }
 }
 
-function resumeGame() {
+window.resumeGame = function() {
   if (tetris) {
     tetris.resume();
   }
 }
 
-function restartGame() {
+window.restartGame = function() {
   document.getElementById('game-over').style.display = 'none';
   document.getElementById('pause-screen').style.display = 'none';
   if (tetris) {
@@ -262,7 +262,7 @@ function restartGame() {
   }
 }
 
-function quitToMenu() {
+window.quitToMenu = function() {
   if (tetris) {
     clearInterval(tetris.gameLoop);
   }
@@ -271,7 +271,7 @@ function quitToMenu() {
   showScreen('start-screen');
 }
 
-function backToMenu() {
+window.backToMenu = function() {
   quitToMenu();
 }
 
