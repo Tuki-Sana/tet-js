@@ -33,34 +33,45 @@
 
     <!-- ゲーム画面 -->
     <div id="game-screen" class="screen">
-      <div class="game-top">
-        <!-- スコアボード -->
-        <div class="game-panel" id="score-board">
-          <div>スコア: <span id="score">0</span></div>
-          <div>レベル: <span id="level">1</span></div>
-          <div>最高スコア: <span id="high-score">0</span></div>
-        </div>
-
-        <!-- NEXTピース表示パネル -->
-        <div class="game-panel next-panel">
-          <div class="next-title">⬇️ NEXT</div>
-          <div class="next-pieces">
-            <div class="next-piece-container">
-              <canvas class="next-piece-canvas" id="next-piece-1" width="80" height="80"></canvas>
-            </div>
-            <div class="next-piece-container">
-              <canvas class="next-piece-canvas" id="next-piece-2" width="60" height="60"></canvas>
-            </div>
-            <div class="next-piece-container">
-              <canvas class="next-piece-canvas" id="next-piece-3" width="60" height="60"></canvas>
-            </div>
-          </div>
+      <!-- スコアボード -->
+      <div class="game-panel" id="score-board">
+        <div>スコア: <span id="score">0</span></div>
+        <div>レベル: <span id="level">1</span></div>
+        <div>最高スコア: <span id="high-score">0</span></div>
+        
+        <!-- ボーナススコア表示 -->
+        <div class="bonus-section">
+          <h4>ボーナススコア</h4>
+          <div class="bonus-line">1行: 100 × <span id="current-level-1">1</span></div>
+          <div class="bonus-line">2行: 300 × <span id="current-level-2">1</span></div>
+          <div class="bonus-line">3行: 500 × <span id="current-level-3">1</span></div>
+          <div class="bonus-line">4行: 800 × <span id="current-level-4">1</span></div>
         </div>
       </div>
 
       <!-- メインゲーム画面 -->
-      <div class="game-main">
-        <canvas id="game" width="300" height="600"></canvas>
+      <canvas id="game" width="300" height="600"></canvas>
+
+      <!-- NEXTピース表示パネル -->
+      <div class="game-panel next-panel">
+        <div class="next-title">⬇️ NEXT</div>
+        <div class="next-pieces">
+          <div class="next-piece-container">
+            <canvas class="next-piece-canvas" id="next-piece-1" width="80" height="80"></canvas>
+          </div>
+          <div class="next-piece-container">
+            <canvas class="next-piece-canvas" id="next-piece-2" width="60" height="60"></canvas>
+          </div>
+          <div class="next-piece-container">
+            <canvas class="next-piece-canvas" id="next-piece-3" width="60" height="60"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ゲーム制御ボタン -->
+      <div class="game-controls">
+        <button onclick="pauseGame()">一時停止</button>
+        <button class="danger" onclick="quitToMenu()">メニューに戻る</button>
       </div>
     </div>
   </div>
