@@ -5,118 +5,193 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>テトリス - モバイル対応</title>
+  <title>テトリス</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div id="container">
-    <!-- スタート画面 -->
-    <div id="start-screen" class="screen active">
-      <div class="glass">
+  <!-- スタート画面（1ページ目：ルール説明） -->
+  <div id="start-screen" class="screen active">
+    <div class="start-container">
+      <div class="title-section">
         <h1>🎮 テトリス 🎮</h1>
-        <p>落ちてくるテトラミノを操作してラインを消去しよう！<br>
-        <strong>📱 スマホ対応！</strong> 直感的なタップ操作</p>
-        
-        <h3>📋 操作方法</h3>
-        <table class="controls-table">
-          <tr><th>操作</th><th>PC</th><th>スマホ</th></tr>
-          <tr><td>左に移動</td><td>A</td><td>画面左側タップ</td></tr>
-          <tr><td>右に移動</td><td>D</td><td>画面右側タップ</td></tr>
-          <tr><td>下に移動</td><td>S</td><td>画面下側長押し</td></tr>
-          <tr><td>回転</td><td>W</td><td>画面上部タップ</td></tr>
-          <tr><td>一時停止</td><td>P/ESC</td><td>⏸️ボタン</td></tr>
-        </table>
-        
-        <button onclick="startGame()">ゲーム開始</button>
+        <p class="subtitle">落ちてくるテトラミノを操作してラインを消去しよう！</p>
+      </div>
+
+      <div class="rules-grid">
+        <!-- 操作方法 -->
+        <div class="rule-card">
+          <h3>📋 操作方法</h3>
+          <div class="controls-compact">
+            <div class="control-item">
+              <span class="control-desc">移動</span>
+              <span class="control-keys">
+                <span class="key">A</span><span class="key">D</span> / タップ
+              </span>
+            </div>
+            <div class="control-item">
+              <span class="control-desc">回転</span>
+              <span class="control-keys">
+                <span class="key">W</span> / 上部タップ
+              </span>
+            </div>
+            <div class="control-item">
+              <span class="control-desc">高速落下</span>
+              <span class="control-keys">
+                <span class="key">S</span> / 下部長押し
+              </span>
+            </div>
+            <div class="control-item">
+              <span class="control-desc">一時停止</span>
+              <span class="control-keys">
+                <span class="key">ESC</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- スコア -->
+        <div class="rule-card">
+          <h3>🎯 スコア</h3>
+          <div class="score-list">
+            <div class="score-item">1行消去<span>100×レベル</span></div>
+            <div class="score-item">2行消去<span>300×レベル</span></div>
+            <div class="score-item">3行消去<span>500×レベル</span></div>
+            <div class="score-item">4行消去<span>800×レベル</span></div>
+          </div>
+        </div>
+
+        <!-- スマホ専用説明 -->
+        <div class="rule-card mobile-only">
+          <h3>📱 タップ操作</h3>
+          <div class="mobile-controls-guide">
+            <div class="tap-area-demo">
+              <div class="demo-area demo-rotate">回転</div>
+              <div class="demo-area demo-left">左</div>
+              <div class="demo-area demo-right">右</div>
+              <div class="demo-area demo-down">高速落下</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="start-btn" onclick="startGame()">🎮 ゲーム開始</button>
+    </div>
+  </div>
+
+  <!-- ゲーム画面（2ページ目：プレイ専用） -->
+  <div id="game-screen" class="screen">
+    <!-- PC版レイアウト -->
+    <div class="game-layout-pc">
+      <!-- 左パネル -->
+      <div class="left-panel">
+        <div class="score-panel">
+          <div class="score-item">
+            <span class="score-label">スコア</span>
+            <span class="score-value" id="score">0</span>
+          </div>
+          <div class="score-item">
+            <span class="score-label">レベル</span>
+            <span class="score-value" id="level">1</span>
+          </div>
+          <div class="score-item">
+            <span class="score-label">最高</span>
+            <span class="score-value" id="high-score">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 中央ゲームエリア -->
+      <div class="center-game">
+        <div class="game-area">
+          <!-- タップゾーン（スマホのみ） -->
+          <div id="tap-zones" class="tap-zones">
+            <div class="tap-zone tap-rotate" data-action="rotate"></div>
+            <div class="tap-zone tap-left" data-action="left"></div>
+            <div class="tap-zone tap-right" data-action="right"></div>
+            <div class="tap-zone tap-down" data-action="down"></div>
+          </div>
+          <canvas id="game" width="300" height="600"></canvas>
+        </div>
+      </div>
+
+      <!-- 右パネル -->
+      <div class="right-panel">
+        <div class="next-panel">
+          <h4>NEXT</h4>
+          <div class="next-list">
+            <canvas id="next-piece-1" width="60" height="60"></canvas>
+            <canvas id="next-piece-2" width="50" height="50"></canvas>
+            <canvas id="next-piece-3" width="50" height="50"></canvas>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- ゲーム画面 -->
-    <div id="game-screen" class="screen">
-      <!-- スコアボード -->
-      <div class="game-panel" id="score-board">
-        <div>スコア: <span id="score">0</span></div>
-        <div>レベル: <span id="level">1</span></div>
-        <div>最高スコア: <span id="high-score">0</span></div>
-        
-        <!-- ★追加: ボーナススコア表示 -->
-        <div class="bonus-section">
-          <h4>ボーナススコア</h4>
-          <div class="bonus-line">1行: 100 × <span id="current-level-1">1</span></div>
-          <div class="bonus-line">2行: 300 × <span id="current-level-2">1</span></div>
-          <div class="bonus-line">3行: 500 × <span id="current-level-3">1</span></div>
-          <div class="bonus-line">4行: 800 × <span id="current-level-4">1</span></div>
+    <!-- スマホ版レイアウト -->
+    <div class="game-layout-mobile">
+      <!-- 上部情報 -->
+      <div class="mobile-header">
+        <div class="mobile-score">
+          <span id="mobile-score">0</span>
+          <small>スコア</small>
+        </div>
+        <div class="mobile-level">
+          <span id="mobile-level">1</span>
+          <small>レベル</small>
+        </div>
+        <div class="mobile-next">
+          <canvas id="mobile-next" width="40" height="40"></canvas>
+          <small>NEXT</small>
         </div>
       </div>
 
-      <!-- ★修正: メインゲーム画面（タップエリア付き） -->
-      <div class="game-area">
-        <!-- ★追加: タップ操作用の透明エリア -->
-        <div id="tap-zones" class="tap-zones">
-          <div class="tap-zone tap-rotate" data-action="rotate">
-            <div class="tap-hint">タップで回転</div>
+      <!-- ゲームエリア -->
+      <div class="mobile-game-area">
+        <div class="game-area">
+          <div id="mobile-tap-zones" class="tap-zones">
+            <div class="tap-zone tap-rotate" data-action="rotate"></div>
+            <div class="tap-zone tap-left" data-action="left"></div>
+            <div class="tap-zone tap-right" data-action="right"></div>
+            <div class="tap-zone tap-down" data-action="down"></div>
           </div>
-          <div class="tap-zone tap-left" data-action="left">
-            <div class="tap-hint">タップで左移動</div>
-          </div>
-          <div class="tap-zone tap-right" data-action="right">
-            <div class="tap-hint">タップで右移動</div>
-          </div>
-          <div class="tap-zone tap-down" data-action="down">
-            <div class="tap-hint">長押しで高速落下</div>
-          </div>
+          <canvas id="mobile-game" width="280" height="560"></canvas>
         </div>
-        <canvas id="game" width="300" height="600"></canvas>
-      </div>
-
-      <!-- NEXTピース表示パネル -->
-      <div class="game-panel next-panel">
-        <div class="next-title">⬇️ NEXT</div>
-        <div class="next-pieces">
-          <div class="next-piece-container">
-            <canvas class="next-piece-canvas" id="next-piece-1" width="80" height="80"></canvas>
-          </div>
-          <div class="next-piece-container">
-            <canvas class="next-piece-canvas" id="next-piece-2" width="60" height="60"></canvas>
-          </div>
-          <div class="next-piece-container">
-            <canvas class="next-piece-canvas" id="next-piece-3" width="60" height="60"></canvas>
-          </div>
-        </div>
-      </div>
-
-      <!-- ★修正: ゲーム制御ボタン（PC用のみ表示） -->
-      <div class="game-controls">
-        <button onclick="pauseGame()">一時停止</button>
-        <button class="danger" onclick="quitToMenu()">メニューに戻る</button>
       </div>
     </div>
   </div>
 
-  <!-- ゲームオーバー画面 -->
+  <!-- ESC メニュー -->
+  <div id="pause-menu" class="modal">
+    <div class="modal-content">
+      <h2>⏸️ 一時停止</h2>
+      <div class="menu-buttons">
+        <button onclick="resumeGame()" class="resume-btn">▶️ ゲーム再開</button>
+        <button onclick="restartGame()" class="restart-btn">🔄 やり直し</button>
+        <button onclick="backToMenu()" class="menu-btn">🏠 メニューに戻る</button>
+      </div>
+      <p class="menu-hint">ESCキーで再開できます</p>
+    </div>
+  </div>
+
+  <!-- ゲームオーバー -->
   <div id="game-over" class="modal">
     <div class="modal-content">
-      <h2>🎯 ゲームオーバー 🎯</h2>
-      <p>最終スコア: <span id="final-score">0</span></p>
-      <p>到達レベル: <span id="final-level">1</span></p>
-      <button onclick="restartGame()">再挑戦</button>
-      <button class="danger" onclick="backToMenu()">メニューに戻る</button>
+      <h2>🎯 ゲームオーバー</h2>
+      <div class="result-stats">
+        <div class="stat">
+          <span class="stat-label">最終スコア</span>
+          <span class="stat-value" id="final-score">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">到達レベル</span>
+          <span class="stat-value" id="final-level">1</span>
+        </div>
+      </div>
+      <div class="menu-buttons">
+        <button onclick="restartGame()" class="restart-btn">🔄 再挑戦</button>
+        <button onclick="backToMenu()" class="menu-btn">🏠 メニューに戻る</button>
+      </div>
     </div>
-  </div>
-
-  <!-- 一時停止画面 -->
-  <div id="pause-screen" class="modal">
-    <div class="modal-content">
-      <h2>⏸️ 一時停止中 ⏸️</h2>
-      <button onclick="resumeGame()">ゲーム再開</button>
-      <button onclick="restartGame()">最初からやり直し</button>
-      <button class="danger" onclick="backToMenu()">メニューに戻る</button>
-    </div>
-  </div>
-
-  <!-- ★修正: スマホ専用：ポーズボタンのみ -->
-  <div id="mobile-controls" class="mobile-controls">
-    <button class="pause-only-btn" id="btn-pause">⏸️ 一時停止</button>
   </div>
 
   <script src="js/tetris.js"></script>
