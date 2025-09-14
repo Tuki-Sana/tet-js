@@ -39,7 +39,7 @@
         <div>レベル: <span id="level">1</span></div>
         <div>最高スコア: <span id="high-score">0</span></div>
         
-        <!-- ボーナススコア表示 -->
+        <!-- ★追加: ボーナススコア表示 -->
         <div class="bonus-section">
           <h4>ボーナススコア</h4>
           <div class="bonus-line">1行: 100 × <span id="current-level-1">1</span></div>
@@ -49,9 +49,9 @@
         </div>
       </div>
 
-      <!-- メインゲーム画面（タップエリア付き） -->
+      <!-- ★修正: メインゲーム画面（タップエリア付き） -->
       <div class="game-area">
-        <!-- タップ操作用の透明エリア -->
+        <!-- ★追加: タップ操作用の透明エリア -->
         <div id="tap-zones" class="tap-zones">
           <div class="tap-zone tap-rotate" data-action="rotate">
             <div class="tap-hint">タップで回転</div>
@@ -85,7 +85,7 @@
         </div>
       </div>
 
-      <!-- ゲーム制御ボタン -->
+      <!-- ★修正: ゲーム制御ボタン（PC用のみ表示） -->
       <div class="game-controls">
         <button onclick="pauseGame()">一時停止</button>
         <button class="danger" onclick="quitToMenu()">メニューに戻る</button>
@@ -114,7 +114,7 @@
     </div>
   </div>
 
-  <!-- スマホ専用：ポーズボタンのみ -->
+  <!-- ★修正: スマホ専用：ポーズボタンのみ -->
   <div id="mobile-controls" class="mobile-controls">
     <button class="pause-only-btn" id="btn-pause">⏸️ 一時停止</button>
   </div>
