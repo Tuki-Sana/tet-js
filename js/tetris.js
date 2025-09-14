@@ -78,8 +78,8 @@ class Tetris {
     const viewportHeight = window.innerHeight;
     
     // ★修正: より適切なサイズ計算
-    const maxWidth = Math.min(300, viewportWidth - 30);
-    const maxHeight = Math.min(500, viewportHeight - 120);
+    const maxWidth = Math.min(380, viewportWidth - 6);
+    const maxHeight = Math.min(580, viewportHeight - 70);
     
     // アスペクト比を維持（10:20の比率）
     const aspectRatio = 10 / 20;
@@ -711,7 +711,7 @@ function quitToMenu() {
 
   // ★追加: スマホでメニュー戻り時にbody固定を解除
   document.body.classList.remove('game-active');
-  
+
   // モーダルを閉じる
   document.querySelectorAll('.modal').forEach(modal => {
     modal.classList.remove('show');

@@ -1,25 +1,25 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  /* ★修正: ゲーミング色彩に復活 */
-  --primary: #4c1d95;          /* より濃いゲーミング紫 */
+  /* ★修正: ダークモード対応のゲーミング色彩 */
+  --primary: #4c1d95;          
   --primary-hover: #3730a3;
-  --secondary: #7c3aed;        /* 鮮やかな紫 */
-  --accent: #c026d3;           /* マゼンタアクセント */
-  --success: #10b981;          /* 鮮やかなグリーン */
-  --danger: #ef4444;           /* 鮮やかなレッド */
-  --warning: #f59e0b;          /* 鮮やかなオレンジ */
-  --dark: #0f172a;             /* 深い黒 */
-  --dark-light: #1e293b;       /* 濃いグレー */
-  --dark-lighter: #334155;
-  --text: #f8fafc;             /* 純白に近い */
-  --text-muted: #94a3b8;
-  --border: #475569;
-  --glass: rgba(15, 23, 42, 0.8);        /* 濃いガラス */
-  --glass-border: rgba(124, 58, 237, 0.3); /* 紫のボーダー */
-  --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-  --glow-primary: 0 0 20px rgba(124, 58, 237, 0.5);
-  --glow-secondary: 0 0 30px rgba(192, 38, 211, 0.4);
+  --secondary: #7c3aed;        
+  --accent: #c026d3;           
+  --success: #10b981;          
+  --danger: #ef4444;           
+  --warning: #f59e0b;          
+  --dark: #000000;             /* ★修正: 真っ黒 */
+  --dark-light: #0a0a0a;       /* ★修正: 限りなく黒に近い */
+  --dark-lighter: #1a1a1a;     /* ★修正: 極濃グレー */
+  --text: #ffffff;             /* ★修正: 純白 */
+  --text-muted: #888888;       /* ★修正: より濃いグレー */
+  --border: #333333;           /* ★修正: 濃いボーダー */
+  --glass: rgba(0, 0, 0, 0.85);          /* ★修正: 濃い黒ガラス */
+  --glass-border: rgba(124, 58, 237, 0.4); /* ★修正: より鮮やかな紫ボーダー */
+  --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+  --glow-primary: 0 0 25px rgba(124, 58, 237, 0.7);    /* ★修正: 強いグロー */
+  --glow-secondary: 0 0 35px rgba(192, 38, 211, 0.6);  /* ★修正: 強いグロー */
 }
 
 * {
@@ -33,7 +33,7 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  background: linear-gradient(135deg, var(--dark) 0%, var(--dark-light) 100%);
+  background: var(--dark); /* ★修正: 純黒背景 */
   color: var(--text);
   height: 100vh;
   overflow: hidden;
@@ -41,7 +41,7 @@ body {
   width: 100%;
 }
 
-/* ★修正: ゲーミング背景エフェクト強化 */
+/* ★修正: より強いゲーミング背景エフェクト */
 body::before {
   content: '';
   position: fixed;
@@ -50,9 +50,9 @@ body::before {
   right: 0;
   bottom: 0;
   background: 
-    radial-gradient(circle at 20% 80%, rgba(124, 58, 237, 0.2) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(192, 38, 211, 0.2) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.15) 0%, transparent 50%);
+    radial-gradient(circle at 20% 80%, rgba(124, 58, 237, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(192, 38, 211, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.2) 0%, transparent 50%);
   pointer-events: none;
   z-index: -1;
 }
@@ -167,7 +167,7 @@ body::before {
   font-size: 0.85rem;
   font-weight: 500;
   color: var(--warning);
-  box-shadow: 0 0 10px rgba(124, 58, 237, 0.2);
+  box-shadow: var(--glow-primary);
 }
 
 .score-list {
@@ -187,7 +187,7 @@ body::before {
   font-family: 'JetBrains Mono', monospace;
   color: var(--warning);
   font-weight: 500;
-  text-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+  text-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
 }
 
 .mobile-only {
@@ -210,7 +210,7 @@ body::before {
 
 .start-btn:hover {
   transform: translateY(-2px);
-  box-shadow: var(--glow-secondary), 0 12px 30px rgba(192, 38, 211, 0.6);
+  box-shadow: var(--glow-secondary), 0 12px 30px rgba(192, 38, 211, 0.8);
 }
 
 /* ========== ゲーム画面（2ページ目） ========== */
@@ -267,7 +267,7 @@ body::before {
   font-size: 1.6rem;
   font-weight: 700;
   color: var(--warning);
-  text-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+  text-shadow: 0 0 15px rgba(245, 158, 11, 0.7);
 }
 
 .center-game {
@@ -283,7 +283,7 @@ body::before {
 #game, #mobile-game {
   border: 3px solid var(--secondary);
   border-radius: 8px;
-  box-shadow: var(--glow-primary), 0 0 40px rgba(124, 58, 237, 0.3);
+  box-shadow: var(--glow-primary), 0 0 50px rgba(124, 58, 237, 0.5);
   background: #000;
 }
 
@@ -317,7 +317,7 @@ body::before {
   border: 1px solid var(--secondary);
   border-radius: 4px;
   background: #000;
-  box-shadow: 0 0 8px rgba(124, 58, 237, 0.2);
+  box-shadow: 0 0 12px rgba(124, 58, 237, 0.4);
 }
 
 /* タップゾーン */
@@ -364,14 +364,14 @@ body::before {
   height: 20%;
 }
 
-/* ★修正: スマホ版レイアウト - 高さ問題解決 */
+/* ★修正: スマホ版レイアウト - 画面いっぱい使用 */
 .game-layout-mobile {
   display: none;
   flex-direction: column;
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  position: fixed; /* ★追加: 重要 */
+  position: fixed;
   top: 0;
   left: 0;
 }
@@ -383,56 +383,56 @@ body::before {
   background: var(--glass);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--glass-border);
-  padding: 10px 20px; /* ★修正: パディング縮小 */
+  padding: 8px 15px; /* ★修正: さらにコンパクト */
   flex-shrink: 0;
-  min-height: 80px; /* ★追加: 最小高さ */
+  min-height: 65px; /* ★修正: さらに縮小 */
 }
 
 .mobile-score, .mobile-level, .mobile-next {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px; /* ★修正: gap縮小 */
 }
 
 .mobile-score span, .mobile-level span {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 1.2rem; /* ★修正: サイズ縮小 */
+  font-size: 1.1rem; /* ★修正: さらに縮小 */
   font-weight: 700;
   color: var(--warning);
-  text-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
 }
 
 .mobile-next canvas {
   border: 1px solid var(--secondary);
   border-radius: 4px;
   background: #000;
-  box-shadow: 0 0 6px rgba(124, 58, 237, 0.2);
+  box-shadow: 0 0 8px rgba(124, 58, 237, 0.4);
 }
 
 .mobile-header small {
-  font-size: 0.7rem; /* ★修正: サイズ縮小 */
+  font-size: 0.65rem; /* ★修正: さらに縮小 */
   color: var(--text-muted);
 }
 
-/* ★修正: モバイルゲームエリア - 高さ計算改良 */
+/* ★修正: モバイルゲームエリア - 余白最小化 */
 .mobile-game-area {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px; /* ★修正: パディング縮小 */
+  padding: 5px; /* ★修正: 余白最小化 */
   overflow: hidden;
-  min-height: 0; /* ★追加: フレックス収縮を許可 */
+  min-height: 0;
 }
 
-/* ★修正: モバイルゲームキャンバス - サイズ計算改良 */
+/* ★修正: iPhone14向け画面いっぱいサイズ */
 #mobile-game {
-  width: min(280px, calc(100vw - 20px)) !important;
-  height: min(450px, calc(100vh - 100px)) !important; /* ★修正: ヘッダー分を考慮 */
+  width: min(350px, calc(100vw - 10px)) !important; /* ★修正: 画面幅ほぼ全体 */
+  height: min(550px, calc(100vh - 75px)) !important; /* ★修正: 画面高さほぼ全体 */
   border: 2px solid var(--secondary);
   border-radius: 8px;
-  box-shadow: var(--glow-primary), 0 0 20px rgba(124, 58, 237, 0.3);
+  box-shadow: var(--glow-primary), 0 0 30px rgba(124, 58, 237, 0.5);
   background: #000;
   display: block;
   margin: 0 auto;
@@ -446,7 +446,7 @@ body::before {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(15, 23, 42, 0.95);
+  background: rgba(0, 0, 0, 0.95); /* ★修正: より濃い背景 */
   backdrop-filter: blur(20px);
   z-index: 1000;
   align-items: center;
@@ -497,7 +497,7 @@ body::before {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 0 10px rgba(124, 58, 237, 0.3);
+  box-shadow: 0 0 15px rgba(124, 58, 237, 0.5);
 }
 
 .menu-buttons button:hover {
@@ -507,12 +507,12 @@ body::before {
 
 .restart-btn {
   background: linear-gradient(135deg, var(--success), #047857) !important;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3) !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.5) !important;
 }
 
 .menu-btn {
   background: linear-gradient(135deg, var(--danger), #dc2626) !important;
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3) !important;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.5) !important;
 }
 
 .menu-hint {
@@ -544,26 +544,23 @@ body::before {
   font-size: 1.4rem;
   font-weight: 700;
   color: var(--warning);
-  text-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+  text-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
 }
 
-/* ★修正: レスポンシブ - スクロール問題解決 */
+/* ★修正: レスポンシブ - iPhone14最適化 */
 @media (max-width: 768px) {
-  /* ★修正: スマホでのスタート画面スクロール許可 */
   body {
-    overflow: auto; /* ★修正: スタート画面ではスクロール許可 */
-    position: static; /* ★修正: static に変更 */
+    overflow: auto;
+    position: static;
   }
 
-  /* ★修正: スタート画面のスクロール設定 */
   #start-screen {
-    height: auto; /* ★修正: auto に変更 */
+    height: auto;
     min-height: 100vh;
-    overflow-y: visible; /* ★修正: スクロール許可 */
+    overflow-y: visible;
     position: relative;
   }
 
-  /* ★修正: ゲーム画面は固定表示 */
   #game-screen {
     height: 100vh !important;
     overflow: hidden !important;
@@ -573,7 +570,6 @@ body::before {
     width: 100vw !important;
   }
 
-  /* ★追加: ゲーム画面アクティブ時はbody固定 */
   body.game-active {
     overflow: hidden !important;
     position: fixed !important;
@@ -594,7 +590,7 @@ body::before {
     border: 2px solid var(--secondary);
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 0 8px rgba(124, 58, 237, 0.2);
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.4);
   }
 
   .demo-area {
@@ -607,20 +603,20 @@ body::before {
   }
 
   .demo-rotate {
-    background: rgba(124, 58, 237, 0.2);
+    background: rgba(124, 58, 237, 0.3);
     grid-column: 1 / -1;
   }
 
   .demo-left {
-    background: rgba(59, 130, 246, 0.2);
+    background: rgba(59, 130, 246, 0.3);
   }
 
   .demo-right {
-    background: rgba(59, 130, 246, 0.2);
+    background: rgba(59, 130, 246, 0.3);
   }
 
   .demo-down {
-    background: rgba(16, 185, 129, 0.2);
+    background: rgba(16, 185, 129, 0.3);
     grid-column: 1 / -1;
   }
 
@@ -647,6 +643,23 @@ body::before {
   }
 }
 
+/* ★修正: iPhone14 Pro Max対応 */
+@media (max-width: 430px) and (min-height: 900px) {
+  .mobile-header {
+    padding: 6px 12px;
+    min-height: 60px;
+  }
+
+  .mobile-game-area {
+    padding: 3px;
+  }
+
+  #mobile-game {
+    width: min(380px, calc(100vw - 6px)) !important;  /* ★修正: iPhone14向けさらに拡大 */
+    height: min(580px, calc(100vh - 65px)) !important; /* ★修正: 縦もフル活用 */
+  }
+}
+
 /* ★修正: 小画面対応 */
 @media (max-width: 480px) {
   .rule-card {
@@ -654,17 +667,17 @@ body::before {
   }
   
   .mobile-game-area {
-    padding: 8px;
+    padding: 4px; /* ★修正: さらに余白縮小 */
   }
 
   .mobile-header {
-    padding: 8px 15px;
-    min-height: 70px;
+    padding: 6px 12px; /* ★修正: さらにコンパクト */
+    min-height: 60px;  /* ★修正: さらに縮小 */
   }
 
   #mobile-game {
-    width: min(260px, calc(100vw - 16px)) !important;
-    height: min(420px, calc(100vh - 80px)) !important;
+    width: min(320px, calc(100vw - 8px)) !important;  /* ★修正: 画面ほぼフル活用 */
+    height: min(520px, calc(100vh - 70px)) !important;
   }
 
   .title-section h1 {
@@ -672,27 +685,19 @@ body::before {
   }
 }
 
-/* ★修正: 横画面対応 */
+/* ★修正: 横画面対応 - 画面フル活用 */
 @media (max-width: 768px) and (orientation: landscape) {
   .mobile-header {
-    padding: 6px 20px;
-    min-height: 60px;
+    padding: 4px 15px;  /* ★修正: 横画面でさらにコンパクト */
+    min-height: 50px;   /* ★修正: 横画面で極小 */
   }
 
   .mobile-game-area {
-    padding: 5px;
+    padding: 3px;
   }
 
   #mobile-game {
-    width: min(350px, calc(100vh - 70px)) !important;
-    height: min(300px, calc(100vh - 70px)) !important;
-  }
-}
-
-/* ★追加: iPhone系デバイス対応 */
-@media (max-width: 430px) and (max-height: 932px) {
-  #mobile-game {
-    width: min(250px, calc(100vw - 12px)) !important;
-    height: min(400px, calc(100vh - 75px)) !important;
+    width: min(450px, calc(100vh - 55px)) !important; /* ★修正: 横画面フル活用 */
+    height: min(350px, calc(100vh - 55px)) !important;
   }
 }
