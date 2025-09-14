@@ -651,6 +651,11 @@ function showScreen(screenId) {
 // ★修正: ゲーム制御関数（デバイス別キャンバス選択改良）
 function startGame() {
   showScreen('game-screen');
+
+  if (isMobileDevice()) {
+    document.body.classList.add('game-active');
+  }
+
   const isMobile = isMobileDevice();
   
   // ★修正: より確実なキャンバス選択
@@ -703,6 +708,10 @@ function quitToMenu() {
     clearInterval(tetris.gameLoop);
     tetris = null;
   }
+
+  // ★追加: スマホでメニュー戻り時にbody固定を解除
+  document.body.classList.remove('game-active');
+  
   // モーダルを閉じる
   document.querySelectorAll('.modal').forEach(modal => {
     modal.classList.remove('show');
