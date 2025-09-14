@@ -21,24 +21,6 @@ function setupMobileUI() {
   
   if (isMobile) {
     document.body.classList.add('mobile-device');
-    
-    const gameScreen = document.getElementById('game-screen');
-    if (gameScreen) {
-      gameScreen.classList.add('mobile-game-screen');
-    }
-    
-    const mobileControls = document.getElementById('mobile-controls');
-    if (mobileControls) {
-      mobileControls.classList.add('show');
-    }
-    
-    let viewport = document.querySelector("meta[name=viewport]");
-    if (!viewport) {
-      viewport = document.createElement('meta');
-      viewport.name = 'viewport';
-      document.head.appendChild(viewport);
-    }
-    viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
   }
 }
 
@@ -59,18 +41,24 @@ class Tetris {
     this.linesStacked = 0;
     this.linesCleared = 0;
     
-    // NEXTピース管理
-    this.nextPieces = [];
-    this.nextCanvases = [
-      document.getElementById('next-piece-1'),
-      document.getElementById('next-piece-2'),
-      document.getElementById('next-piece-3')
-    ];
-    this.nextContexts = this.nextCanvases.map(canvas => canvas.getContext('2d'));
+    // デバイス別NEXT設定
+    this.isMobile = isMobileDevice();
+    if (this.isMobile) {
+      this.nextPieces = [];
+      this.nextCanvas = document.getElementById('mobile-next');
+      this.nextContext = this.nextCanvas ? this.nextCanvas.getContext('2d') : null;
+    } else {
+      this.nextPieces = [];
+      this.nextCanvases = [
+        document.getElementById('next-piece-1'),
+        document.getElementById('next-piece-2'),
+        document.getElementById('next-piece-3')
+      ];
+      this.nextContexts = this.nextCanvases.map(canvas => canvas ? canvas.getContext('2d') : null);
+    }
     
     this.initializeNextPieces();
-    this.setupControls(); // 統合した操作設定
-    this.updateBonusDisplay(); // ボーナス表示更新
+    this.setupControls();
   }
 
   // テトラミノの形状定義
@@ -86,9 +74,7 @@ class Tetris {
 
   // デバイス別操作設定
   setupControls() {
-    const isMobile = isMobileDevice();
-    
-    if (isMobile) {
+    if (this.isMobile) {
       this.setupMobileControls();
     } else {
       this.setupKeyboardControls();
@@ -100,34 +86,9 @@ class Tetris {
 
   // スマホ専用タップ操作
   setupMobileControls() {
-    // ポーズボタンの設定
-    const pauseBtn = document.getElementById('btn-pause');
-    if (pauseBtn) {
-      pauseBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        if (this.paused) {
-          this.resume();
-          pauseBtn.textContent = '⏸️ 一時停止';
-        } else {
-          this.pause();
-          pauseBtn.textContent = '▶️ 再開';
-        }
-      }, { passive: false });
-
-      pauseBtn.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        if (this.paused) {
-          this.resume();
-          pauseBtn.textContent = '⏸️ 一時停止';
-        } else {
-          this.pause();
-          pauseBtn.textContent = '▶️ 再開';
-        }
-      });
-    }
-
-    // タップゾーンの設定
-    const tapZones = document.querySelectorAll('.tap-zone');
+    // デバイス別のタップゾーンを設定
+    const tapZoneSelector = this.isMobile ? '#mobile-tap-zones .tap-zone' : '#tap-zones .tap-zone';
+    const tapZones = document.querySelectorAll(tapZoneSelector);
     let downInterval = null;
 
     tapZones.forEach(zone => {
@@ -162,7 +123,7 @@ class Tetris {
                 this.movePiece(0, 1);
                 this.draw();
               }
-            }, 100); // 100ms間隔で高速落下
+            }, 100);
             break;
         }
       }, { passive: false });
@@ -219,15 +180,6 @@ class Tetris {
         }
       });
     });
-
-    // 初期ヒント表示（3秒後に非表示）
-    const tapZonesContainer = document.getElementById('tap-zones');
-    if (tapZonesContainer) {
-      tapZonesContainer.classList.add('show-hints');
-      setTimeout(() => {
-        tapZonesContainer.classList.remove('show-hints');
-      }, 3000);
-    }
   }
 
   // PC専用キーボード操作
@@ -264,29 +216,25 @@ class Tetris {
     this.drawNextPieces();
   }
 
-  // NEXTピース描画
+  // デバイス別NEXT描画
   drawNextPieces() {
-    this.nextContexts.forEach((ctx, index) => {
-      const canvas = this.nextCanvases[index];
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      if (index < this.nextPieces.length) {
-        const shapeIndex = this.nextPieces[index];
+    if (this.isMobile && this.nextContext) {
+      // スマホ版：1個のみ表示
+      this.nextContext.clearRect(0, 0, this.nextCanvas.width, this.nextCanvas.height);
+      if (this.nextPieces.length > 0) {
+        const shapeIndex = this.nextPieces[0];
         const shape = Tetris.SHAPES[shapeIndex];
         const color = PIECE_COLORS[shapeIndex];
+        const size = 8;
         
-        // モバイル対応サイズ調整
-        const isMobile = isMobileDevice();
-        const size = isMobile ? (index === 0 ? 8 : 6) : (index === 0 ? 16 : 12);
+        const offsetX = (this.nextCanvas.width - shape[0].length * size) / 2;
+        const offsetY = (this.nextCanvas.height - shape.length * size) / 2;
         
-        const offsetX = (canvas.width - shape[0].length * size) / 2;
-        const offsetY = (canvas.height - shape.length * size) / 2;
-        
-        ctx.fillStyle = color;
+        this.nextContext.fillStyle = color;
         shape.forEach((row, y) => {
           row.forEach((value, x) => {
             if (value) {
-              ctx.fillRect(
+              this.nextContext.fillRect(
                 offsetX + x * size,
                 offsetY + y * size,
                 size - 1, size - 1
@@ -295,24 +243,37 @@ class Tetris {
           });
         });
       }
-    });
-  }
-
-  // ボーナス表示更新
-  updateBonusDisplay() {
-    const elements = [
-      'current-level-1',
-      'current-level-2', 
-      'current-level-3',
-      'current-level-4'
-    ];
-
-    elements.forEach(id => {
-      const element = document.getElementById(id);
-      if (element) {
-        element.textContent = this.level;
-      }
-    });
+    } else {
+      // PC版：3個表示
+      this.nextContexts.forEach((ctx, index) => {
+        if (!ctx) return;
+        const canvas = this.nextCanvases[index];
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        if (index < this.nextPieces.length) {
+          const shapeIndex = this.nextPieces[index];
+          const shape = Tetris.SHAPES[shapeIndex];
+          const color = PIECE_COLORS[shapeIndex];
+          const size = index === 0 ? 12 : 10;
+          
+          const offsetX = (canvas.width - shape[0].length * size) / 2;
+          const offsetY = (canvas.height - shape.length * size) / 2;
+          
+          ctx.fillStyle = color;
+          shape.forEach((row, y) => {
+            row.forEach((value, x) => {
+              if (value) {
+                ctx.fillRect(
+                  offsetX + x * size,
+                  offsetY + y * size,
+                  size - 1, size - 1
+                );
+              }
+            });
+          });
+        }
+      });
+    }
   }
 
   // 新しいピース生成
@@ -469,12 +430,20 @@ class Tetris {
       const newLevel = Math.floor(this.linesCleared / 10) + 1;
       if (newLevel > this.level) {
         this.level = newLevel;
-        this.updateBonusDisplay(); // ボーナス表示更新
       }
       
-      // 表示更新
-      document.getElementById('score').textContent = this.score;
-      document.getElementById('level').textContent = this.level;
+      // デバイス別表示更新
+      if (this.isMobile) {
+        const mobileScore = document.getElementById('mobile-score');
+        const mobileLevel = document.getElementById('mobile-level');
+        if (mobileScore) mobileScore.textContent = this.score;
+        if (mobileLevel) mobileLevel.textContent = this.level;
+      } else {
+        const scoreEl = document.getElementById('score');
+        const levelEl = document.getElementById('level');
+        if (scoreEl) scoreEl.textContent = this.score;
+        if (levelEl) levelEl.textContent = this.level;
+      }
     }
   }
 
@@ -483,8 +452,7 @@ class Tetris {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     
     // モバイルでは細いグリッド
-    const isMobile = isMobileDevice();
-    if (!isMobile) {
+    if (!this.isMobile) {
       this.ctx.strokeStyle = '#333';
       this.ctx.lineWidth = 1;
       for (let i = 0; i <= 10; i++) {
@@ -559,7 +527,8 @@ class Tetris {
     
     // 少し遅延を入れて確実にモーダルを表示
     setTimeout(() => {
-      document.getElementById('game-over').style.display = 'block';
+      const modal = document.getElementById('game-over');
+      modal.classList.add('show');
       document.getElementById('final-score').textContent = this.score;
       document.getElementById('final-level').textContent = this.level;
     }, 100);
@@ -568,13 +537,15 @@ class Tetris {
   // ゲーム一時停止
   pause() {
     this.paused = true;
-    document.getElementById('pause-screen').style.display = 'block';
+    const modal = document.getElementById('pause-menu');
+    modal.classList.add('show');
   }
 
   // ゲーム再開
   resume() {
     this.paused = false;
-    document.getElementById('pause-screen').style.display = 'none';
+    const modal = document.getElementById('pause-menu');
+    modal.classList.remove('show');
   }
 
   // ゲームリセット
@@ -592,16 +563,18 @@ class Tetris {
     // NEXTピースもリセット
     this.nextPieces = [];
     this.initializeNextPieces();
-    this.updateBonusDisplay();
     
     // 表示リセット
-    document.getElementById('score').textContent = '0';
-    document.getElementById('level').textContent = '1';
-    
-    // ポーズボタンリセット
-    const pauseBtn = document.getElementById('btn-pause');
-    if (pauseBtn) {
-      pauseBtn.textContent = '⏸️ 一時停止';
+    if (this.isMobile) {
+      const mobileScore = document.getElementById('mobile-score');
+      const mobileLevel = document.getElementById('mobile-level');
+      if (mobileScore) mobileScore.textContent = '0';
+      if (mobileLevel) mobileLevel.textContent = '1';
+    } else {
+      const scoreEl = document.getElementById('score');
+      const levelEl = document.getElementById('level');
+      if (scoreEl) scoreEl.textContent = '0';
+      if (levelEl) levelEl.textContent = '1';
     }
   }
 
@@ -627,9 +600,15 @@ function showScreen(screenId) {
 // ゲーム制御関数
 function startGame() {
   showScreen('game-screen');
-  const canvas = document.getElementById('game');
-  tetris = new Tetris(canvas);
-  tetris.start();
+  const isMobile = isMobileDevice();
+  const canvas = isMobile ? 
+    document.getElementById('mobile-game') : 
+    document.getElementById('game');
+  
+  if (canvas) {
+    tetris = new Tetris(canvas);
+    tetris.start();
+  }
 }
 
 function pauseGame() {
@@ -645,8 +624,11 @@ function resumeGame() {
 }
 
 function restartGame() {
-  document.getElementById('game-over').style.display = 'none';
-  document.getElementById('pause-screen').style.display = 'none';
+  // モーダルを閉じる
+  document.querySelectorAll('.modal').forEach(modal => {
+    modal.classList.remove('show');
+  });
+  
   if (tetris) {
     tetris.reset();
     tetris.start();
@@ -657,8 +639,10 @@ function quitToMenu() {
   if (tetris) {
     clearInterval(tetris.gameLoop);
   }
-  document.getElementById('game-over').style.display = 'none';
-  document.getElementById('pause-screen').style.display = 'none';
+  // モーダルを閉じる
+  document.querySelectorAll('.modal').forEach(modal => {
+    modal.classList.remove('show');
+  });
   showScreen('start-screen');
 }
 
