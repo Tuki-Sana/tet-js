@@ -15,15 +15,15 @@
       <div class="glass">
         <h1>🎮 テトリス 🎮</h1>
         <p>落ちてくるテトラミノを操作してラインを消去しよう！<br>
-        <strong>📱 スマホ対応！</strong> タッチ操作で楽しめます</p>
+        <strong>📱 スマホ対応！</strong> 直感的なタップ操作</p>
         
         <h3>📋 操作方法</h3>
         <table class="controls-table">
           <tr><th>操作</th><th>PC</th><th>スマホ</th></tr>
-          <tr><td>左に移動</td><td>A</td><td>←ボタン</td></tr>
-          <tr><td>右に移動</td><td>D</td><td>→ボタン</td></tr>
-          <tr><td>下に移動</td><td>S</td><td>↓ボタン</td></tr>
-          <tr><td>回転</td><td>W</td><td>🔄ボタン</td></tr>
+          <tr><td>左に移動</td><td>A</td><td>画面左側タップ</td></tr>
+          <tr><td>右に移動</td><td>D</td><td>画面右側タップ</td></tr>
+          <tr><td>下に移動</td><td>S</td><td>画面下側長押し</td></tr>
+          <tr><td>回転</td><td>W</td><td>画面上部タップ</td></tr>
           <tr><td>一時停止</td><td>P/ESC</td><td>⏸️ボタン</td></tr>
         </table>
         
@@ -49,8 +49,25 @@
         </div>
       </div>
 
-      <!-- メインゲーム画面 -->
-      <canvas id="game" width="300" height="600"></canvas>
+      <!-- メインゲーム画面（タップエリア付き） -->
+      <div class="game-area">
+        <!-- タップ操作用の透明エリア -->
+        <div id="tap-zones" class="tap-zones">
+          <div class="tap-zone tap-rotate" data-action="rotate">
+            <div class="tap-hint">タップで回転</div>
+          </div>
+          <div class="tap-zone tap-left" data-action="left">
+            <div class="tap-hint">タップで左移動</div>
+          </div>
+          <div class="tap-zone tap-right" data-action="right">
+            <div class="tap-hint">タップで右移動</div>
+          </div>
+          <div class="tap-zone tap-down" data-action="down">
+            <div class="tap-hint">長押しで高速落下</div>
+          </div>
+        </div>
+        <canvas id="game" width="300" height="600"></canvas>
+      </div>
 
       <!-- NEXTピース表示パネル -->
       <div class="game-panel next-panel">
@@ -97,18 +114,9 @@
     </div>
   </div>
 
-  <!-- スマホ専用コントロール -->
+  <!-- スマホ専用：ポーズボタンのみ -->
   <div id="mobile-controls" class="mobile-controls">
-    <div class="control-row">
-      <button class="control-btn" id="btn-left">←</button>
-      <button class="control-btn" id="btn-rotate">🔄</button>
-      <button class="control-btn" id="btn-right">→</button>
-    </div>
-    <div class="control-row">
-      <button class="control-btn control-pause" id="btn-pause">⏸️</button>
-      <button class="control-btn control-down" id="btn-down">↓</button>
-      <button class="control-btn control-menu" id="btn-menu">📋</button>
-    </div>
+    <button class="pause-only-btn" id="btn-pause">⏸️ 一時停止</button>
   </div>
 
   <script src="js/tetris.js"></script>

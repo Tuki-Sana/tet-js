@@ -70,6 +70,7 @@ class Tetris {
     
     this.initializeNextPieces();
     this.setupControls(); // 統合した操作設定
+    this.updateBonusDisplay(); // ボーナス表示更新
   }
 
   // テトラミノの形状定義
@@ -97,65 +98,136 @@ class Tetris {
     document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
   }
 
-  // スマホ専用ボタン操作
+  // スマホ専用タップ操作
   setupMobileControls() {
-    const buttons = {
-      'btn-left': () => this.movePiece(-1, 0),
-      'btn-right': () => this.movePiece(1, 0),
-      'btn-down': () => this.movePiece(0, 1),
-      'btn-rotate': () => this.rotatePiece(),
-      'btn-pause': () => this.paused ? this.resume() : this.pause(),
-      'btn-menu': () => quitToMenu()
-    };
+    // ポーズボタンの設定
+    const pauseBtn = document.getElementById('btn-pause');
+    if (pauseBtn) {
+      pauseBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (this.paused) {
+          this.resume();
+          pauseBtn.textContent = '⏸️ 一時停止';
+        } else {
+          this.pause();
+          pauseBtn.textContent = '▶️ 再開';
+        }
+      }, { passive: false });
 
-    Object.entries(buttons).forEach(([id, action]) => {
-      const btn = document.getElementById(id);
-      if (btn) {
-        // タッチイベント
-        btn.addEventListener('touchstart', (e) => {
-          e.preventDefault();
-          if (!this.gameOver) {
-            action();
+      pauseBtn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        if (this.paused) {
+          this.resume();
+          pauseBtn.textContent = '⏸️ 一時停止';
+        } else {
+          this.pause();
+          pauseBtn.textContent = '▶️ 再開';
+        }
+      });
+    }
+
+    // タップゾーンの設定
+    const tapZones = document.querySelectorAll('.tap-zone');
+    let downInterval = null;
+
+    tapZones.forEach(zone => {
+      const action = zone.dataset.action;
+
+      // タッチ開始
+      zone.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        
+        if (this.gameOver || this.paused) return;
+
+        switch(action) {
+          case 'rotate':
+            this.rotatePiece();
             this.draw();
-          }
-        }, { passive: false });
-
-        // マウスイベント（デバッグ用）
-        btn.addEventListener('mousedown', (e) => {
-          e.preventDefault();
-          if (!this.gameOver) {
-            action();
+            break;
+          case 'left':
+            this.movePiece(-1, 0);
             this.draw();
-          }
-        });
-
-        // 下ボタンの連続入力対応
-        if (id === 'btn-down') {
-          let intervalId;
-          
-          const startContinuous = () => {
-            intervalId = setInterval(() => {
+            break;
+          case 'right':
+            this.movePiece(1, 0);
+            this.draw();
+            break;
+          case 'down':
+            // 即座に1回下移動
+            this.movePiece(0, 1);
+            this.draw();
+            // 連続下降開始
+            downInterval = setInterval(() => {
               if (!this.gameOver && !this.paused) {
                 this.movePiece(0, 1);
                 this.draw();
               }
-            }, 150);
-          };
-
-          const stopContinuous = () => {
-            if (intervalId) {
-              clearInterval(intervalId);
-              intervalId = null;
-            }
-          };
-
-          btn.addEventListener('touchstart', startContinuous, { passive: false });
-          btn.addEventListener('touchend', stopContinuous, { passive: false });
-          btn.addEventListener('mousedown', startContinuous);
-          btn.addEventListener('mouseup', stopContinuous);
+            }, 100); // 100ms間隔で高速落下
+            break;
         }
-      }
+      }, { passive: false });
+
+      // タッチ終了
+      zone.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        
+        // 下降の連続動作を停止
+        if (action === 'down' && downInterval) {
+          clearInterval(downInterval);
+          downInterval = null;
+        }
+      }, { passive: false });
+
+      // タッチキャンセル
+      zone.addEventListener('touchcancel', (e) => {
+        e.preventDefault();
+        
+        if (action === 'down' && downInterval) {
+          clearInterval(downInterval);
+          downInterval = null;
+        }
+      }, { passive: false });
+
+      // マウスイベント（デバッグ用）
+      zone.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        
+        if (this.gameOver || this.paused) return;
+
+        switch(action) {
+          case 'rotate':
+            this.rotatePiece();
+            break;
+          case 'left':
+            this.movePiece(-1, 0);
+            break;
+          case 'right':
+            this.movePiece(1, 0);
+            break;
+          case 'down':
+            this.movePiece(0, 1);
+            break;
+        }
+        this.draw();
+      });
+
+      zone.addEventListener('mouseup', (e) => {
+        e.preventDefault();
+        if (action === 'down' && downInterval) {
+          clearInterval(downInterval);
+          downInterval = null;
+        }
+      });
     });
+
+    // 初期ヒント表示（3秒後に非表示）
+    const tapZonesContainer = document.getElementById('tap-zones');
+    if (tapZonesContainer) {
+      tapZonesContainer.classList.add('show-hints');
+      setTimeout(() => {
+        tapZonesContainer.classList.remove('show-hints');
+      }, 3000);
+    }
   }
 
   // PC専用キーボード操作
@@ -222,6 +294,23 @@ class Tetris {
             }
           });
         });
+      }
+    });
+  }
+
+  // ボーナス表示更新
+  updateBonusDisplay() {
+    const elements = [
+      'current-level-1',
+      'current-level-2', 
+      'current-level-3',
+      'current-level-4'
+    ];
+
+    elements.forEach(id => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.textContent = this.level;
       }
     });
   }
@@ -380,6 +469,7 @@ class Tetris {
       const newLevel = Math.floor(this.linesCleared / 10) + 1;
       if (newLevel > this.level) {
         this.level = newLevel;
+        this.updateBonusDisplay(); // ボーナス表示更新
       }
       
       // 表示更新
@@ -502,10 +592,17 @@ class Tetris {
     // NEXTピースもリセット
     this.nextPieces = [];
     this.initializeNextPieces();
+    this.updateBonusDisplay();
     
     // 表示リセット
     document.getElementById('score').textContent = '0';
     document.getElementById('level').textContent = '1';
+    
+    // ポーズボタンリセット
+    const pauseBtn = document.getElementById('btn-pause');
+    if (pauseBtn) {
+      pauseBtn.textContent = '⏸️ 一時停止';
+    }
   }
 
   // ゲーム開始
