@@ -11,6 +11,12 @@ const PIECE_COLORS = [
 
 // デバイス判定関数
 function isMobileDevice() {
+  // URLパラメータでデスクトップモードを強制
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('desktop') === 'true') {
+    return false;
+  }
+  
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
          (window.innerWidth <= 768 && window.innerHeight <= 1024);
 }
