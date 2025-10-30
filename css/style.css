@@ -75,7 +75,7 @@ body::before {
 #start-screen {
   align-items: flex-start;
   justify-content: center;
-  padding: 20px;
+  padding: 15px;
   overflow-y: auto;
 }
 
@@ -83,12 +83,12 @@ body::before {
   max-width: 900px;
   width: 100%;
   text-align: center;
-  padding-bottom: 40px;
+  padding-bottom: 20px;
 }
 
 .title-section {
-  margin-bottom: 40px;
-  padding-top: 20px;
+  margin-bottom: 25px;
+  padding-top: 10px;
 }
 
 .title-section h1 {
@@ -111,8 +111,8 @@ body::before {
 .rules-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 25px;
-  margin-bottom: 40px;
+  gap: 20px;
+  margin-bottom: 25px;
 }
 
 .rule-card {
@@ -120,14 +120,14 @@ body::before {
   backdrop-filter: blur(20px);
   border: 1px solid var(--glass-border);
   border-radius: 16px;
-  padding: 25px;
+  padding: 18px;
   box-shadow: var(--shadow);
 }
 
 .rule-card h3 {
   color: var(--secondary);
   font-size: 1.2rem;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   font-weight: 600;
   text-shadow: var(--glow-primary);
 }
@@ -173,13 +173,13 @@ body::before {
 .score-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 }
 
 .score-item {
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
+  padding: 5px 0;
   font-size: 0.95rem;
 }
 
