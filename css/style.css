@@ -1181,6 +1181,7 @@ body.mobile-device .menu-hint-mobile {
     position: fixed !important;
     width: 100% !important;
     height: 100% !important;
+    touch-action: manipulation;
   }
 
   .mobile-only {
