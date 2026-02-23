@@ -28,6 +28,9 @@ const DIFFICULTY_CONFIG = {
 };
 const LINES_PER_STAGE = 10;
 
+// 視覚的に正方形に見えるようブロックの縦を少し伸ばす係数（1.0 = 正方形）
+const BLOCK_HEIGHT_RATIO = 1.04;
+
 function getDropIntervalForLevel(level) {
   return Math.max(400, 2000 * Math.pow(0.85, level - 1));
 }
@@ -615,8 +618,9 @@ class Tetris {
       row.forEach((value, x) => {
         if (value) {
           this.ctx.fillStyle = PIECE_COLORS[value - 1] || '#5dade2';
-          this.ctx.fillRect(x * this.gridSize + 1, y * this.gridSize + 1, 
-          this.gridSize - 2, this.gridSize - 2);
+          const w = this.gridSize - 2;
+          const h = w * BLOCK_HEIGHT_RATIO;
+          this.ctx.fillRect(x * this.gridSize + 1, y * this.gridSize + 1, w, h);
         }
       });
     });
@@ -627,10 +631,12 @@ class Tetris {
       this.currentPiece.shape.forEach((row, y) => {
         row.forEach((value, x) => {
           if (value) {
+            const w = this.gridSize - 2;
+            const h = w * BLOCK_HEIGHT_RATIO;
             this.ctx.fillRect(
               (this.currentPiece.x + x) * this.gridSize + 1,
               (this.currentPiece.y + y) * this.gridSize + 1,
-              this.gridSize - 2, this.gridSize - 2
+              w, h
             );
           }
         });
@@ -750,7 +756,9 @@ class Tetris {
       row.forEach((value, x) => {
         if (value) {
           this.ctx.fillStyle = PIECE_COLORS[value - 1] || '#5dade2';
-          this.ctx.fillRect(x * g + 1, y * g + 1, g - 2, g - 2);
+          const w = g - 2;
+          const h = w * BLOCK_HEIGHT_RATIO;
+          this.ctx.fillRect(x * g + 1, y * g + 1, w, h);
         }
       });
     });
@@ -761,7 +769,9 @@ class Tetris {
           if (cell) {
             const px = (p.x + sx) * g + 1;
             const py = (p.y + sy) * g + 1;
-            this.ctx.fillRect(px, py, g - 2, g - 2);
+            const w = g - 2;
+            const h = w * BLOCK_HEIGHT_RATIO;
+            this.ctx.fillRect(px, py, w, h);
           }
         });
       });
