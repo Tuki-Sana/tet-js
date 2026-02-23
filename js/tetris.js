@@ -2,7 +2,7 @@
 const HIGH_SCORE_STORAGE_KEY = 'tetrisHighScore';
 
 // PWA キャッシュ更新用（sw.js の CACHE_VERSION と揃える）
-const APP_VERSION = '1.0.7';
+const APP_VERSION = '1.0.8';
 
 // 音量設定（0–100 で保存、0–1 で再生に使用）
 const VOLUME_KEYS = { master: 'tetrisMasterVolume', bgm: 'tetrisBgmVolume', se: 'tetrisSeVolume' };
@@ -44,6 +44,65 @@ function applyBgmVolumeToElements() {
   const danger = document.getElementById('bgm-danger');
   if (normal) normal.volume = v;
   if (danger) danger.volume = v;
+}
+
+// SE 聞こえやすく: ダッキング（SE 再生時に BGM を一瞬下げる）＋ Web Audio で SE 増幅
+const BGM_DUCK_VOLUME = 0.15;
+const BGM_DUCK_DURATION_MS = 450;
+const SE_GAIN_BOOST = 1.8;
+let seAudioContext = null;
+let seGainNodes = null;
+let bgmDuckTimeoutId = null;
+
+function duckBgm() {
+  if (bgmDuckTimeoutId != null) clearTimeout(bgmDuckTimeoutId);
+  const normal = document.getElementById('bgm-normal');
+  const danger = document.getElementById('bgm-danger');
+  if (normal) normal.volume = BGM_DUCK_VOLUME;
+  if (danger) danger.volume = BGM_DUCK_VOLUME;
+  bgmDuckTimeoutId = setTimeout(() => {
+    bgmDuckTimeoutId = null;
+    applyBgmVolumeToElements();
+  }, BGM_DUCK_DURATION_MS);
+}
+
+function initSeGainChain() {
+  if (seGainNodes) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    seAudioContext = ctx;
+    const ids = ['se-gameover', 'se-line-few', 'se-line-many'];
+    seGainNodes = {};
+    ids.forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const source = ctx.createMediaElementSource(el);
+      const gain = ctx.createGain();
+      source.connect(gain);
+      gain.connect(ctx.destination);
+      seGainNodes[id] = gain;
+    });
+  } catch (_) {
+    seGainNodes = {};
+  }
+}
+
+function setSeGainAndPlay(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  initSeGainChain();
+  const gainVal = SE_GAIN_BOOST * getEffectiveSeVolume();
+  if (seGainNodes && seGainNodes[id]) {
+    seGainNodes[id].gain.setValueAtTime(gainVal, seAudioContext.currentTime);
+  } else {
+    el.volume = Math.min(1, gainVal);
+  }
+  if (seAudioContext && seAudioContext.state === 'suspended') {
+    seAudioContext.resume().catch(() => {});
+  }
+  el.pause();
+  el.currentTime = 0;
+  el.play().catch(() => {});
 }
 
 // ハイスコア取得（不正値は 0）
@@ -120,23 +179,14 @@ function pauseAllBgm() {
 }
 
 function playGameOverSe() {
-  const el = document.getElementById('se-gameover');
-  if (el) {
-    el.volume = getEffectiveSeVolume();
-    el.currentTime = 0;
-    el.play().catch(() => {});
-  }
+  duckBgm();
+  setSeGainAndPlay('se-gameover');
 }
 
 function playLineClearSe(linesCleared) {
+  duckBgm();
   const id = linesCleared >= 3 ? 'se-line-many' : 'se-line-few';
-  const el = document.getElementById(id);
-  if (el) {
-    el.volume = getEffectiveSeVolume();
-    el.pause();
-    el.currentTime = 0;
-    el.play().catch(() => {});
-  }
+  setSeGainAndPlay(id);
 }
 
 function updateBgmFromBoard(board) {
@@ -1201,6 +1251,7 @@ function exitTutorial() {
 
 // ★修正: ゲーム制御関数（デバイス別キャンバス選択改良）
 function startGame() {
+  initSeGainChain(); // ユーザージェスチャー内で Web Audio を初期化（SE 増幅用）
   showScreen('game-screen');
   updateHighScoreDisplay(getHighScore());
 
