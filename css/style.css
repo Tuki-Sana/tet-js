@@ -65,35 +65,18 @@ body.theme-dark {
   --demo-down: rgba(110, 231, 183, 0.35);
 }
 
-/* テーマ切替ボタン（太陽／月アイコン・ゲーム開始ボタンに合わせたトーン） */
-.theme-toggle {
-  position: fixed;
-  top: 12px;
-  right: 12px;
-  z-index: 1001;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 2px solid #3d6b8a;
-  background: #fff;
-  color: #3d6b8a;
-  font-size: 1.25rem;
-  cursor: pointer;
-  display: flex;
+/* テーマ切替ボタン（スタート画面内・ゲーム開始/チュートリアルと同じサイズ） */
+.theme-toggle-btn {
+  margin-top: 12px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.15s;
-  -webkit-tap-highlight-color: transparent;
+  gap: 8px;
 }
-.theme-toggle:hover {
-  background: rgba(61, 107, 138, 0.08);
-  border-color: #345f7a;
-  color: #345f7a;
-  transform: scale(1.05);
-}
-.theme-toggle:focus {
-  outline: 2px solid #3d6b8a;
-  outline-offset: 2px;
+.theme-toggle-btn .theme-toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .theme-toggle-icon::before {
   content: '☽';
@@ -102,23 +85,8 @@ body.theme-dark {
   display: inline-block;
   transform: rotate(45deg);
 }
-body.theme-dark .theme-toggle {
-  border-color: var(--primary);
-  background: var(--glass);
-  color: var(--primary);
-}
-body.theme-dark .theme-toggle:hover {
-  background: var(--dark-lighter);
-  border-color: var(--primary-hover);
-  color: var(--primary-hover);
-}
 body.theme-dark .theme-toggle-icon::before {
   content: '☀';
-}
-
-/* プレイ中はテーマ切替を非表示 */
-body.game-active .theme-toggle {
-  display: none;
 }
 
 * {
@@ -452,7 +420,8 @@ body.theme-dark .btn-success:hover {
     margin-right: auto;
   }
   .start-actions .start-btn,
-  .start-actions .tutorial-btn {
+  .start-actions .tutorial-btn,
+  .start-actions .theme-toggle-btn {
     margin-top: 0;
     flex: 1;
     min-width: 0;
@@ -972,16 +941,6 @@ body.theme-dark .tutorial-step-indicator {
 
 /* スマホで文字を大きく（拡大しなくても読みやすく） */
 @media (max-width: 768px) {
-  /* テーマ切替とコンテンツが重ならないよう左右に余白（対称で中央を保つ） */
-  #start-screen {
-    padding: 15px 56px;
-  }
-  #tutorial-screen {
-    padding: 8px 56px;
-  }
-  #difficulty-screen {
-    padding: 20px 56px;
-  }
   #start-screen .how-to-play p {
     font-size: 1.05rem;
     line-height: 1.5;
@@ -1272,7 +1231,9 @@ body.mobile-device .menu-hint-mobile {
     gap: 20px;
   }
 
-  .start-btn {
+  .start-actions .start-btn,
+  .start-actions .tutorial-btn,
+  .start-actions .theme-toggle-btn {
     width: 100%;
     max-width: 300px;
   }
