@@ -2,7 +2,7 @@
 const HIGH_SCORE_STORAGE_KEY = 'tetrisHighScore';
 
 // PWA キャッシュ更新用（sw.js の CACHE_VERSION と揃える）
-const APP_VERSION = '2.0.4';
+const APP_VERSION = '2.0.5';
 
 // 音量設定（0–100 で保存、0–1 で再生に使用）
 const VOLUME_KEYS = { master: 'tetrisMasterVolume', bgm: 'tetrisBgmVolume', se: 'tetrisSeVolume' };
@@ -732,11 +732,11 @@ class Tetris {
         }
       }
       
-      // ステージ進行（10ラインごと）とクリア表示
+      // 10ラインごとにレベルアップトースト表示
       const prevStage = Math.floor(prevLinesCleared / LINES_PER_STAGE) + 1;
       const newStage = Math.floor(this.linesCleared / LINES_PER_STAGE) + 1;
       if (!this.tutorialMode && newStage > prevStage) {
-        this.showStageClear(newStage);
+        this.showLevelUpToast();
       }
       
       // ★修正: デバイス別表示更新
@@ -775,11 +775,11 @@ class Tetris {
     if (mobileLinesEl) mobileLinesEl.textContent = n;
   }
 
-  showStageClear(stageNum) {
+  showLevelUpToast() {
     const toast = document.getElementById('stage-clear');
     const textEl = toast ? toast.querySelector('.stage-clear-text') : null;
     if (toast && textEl) {
-      textEl.textContent = `ステージ ${stageNum} クリア！`;
+      textEl.textContent = 'レベルアップ！';
       toast.classList.add('show');
       toast.setAttribute('aria-hidden', 'false');
       if (this._stageClearTimer) clearTimeout(this._stageClearTimer);
