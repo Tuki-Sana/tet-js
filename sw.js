@@ -6,7 +6,9 @@ const ASSETS = [
   './index.html',
   './css/style.css',
   './js/tetris.js',
-  './manifest.json'
+  './manifest.json',
+  './audio/bgm_normal.mp3',
+  './audio/bgm_danger.mp3'
 ];
 
 self.addEventListener('install', (e) => {

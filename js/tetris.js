@@ -34,6 +34,53 @@ const LINES_PER_STAGE = 10;
 // 視覚的に正方形に見えるようブロックの縦を少し伸ばす係数（1.0 = 正方形）
 const BLOCK_HEIGHT_RATIO = 1.04;
 
+// BGM 切り替え（積みの高さ: この行より上にブロックがあるとピンチ）
+const BGM_PINCH_ROW = 7;   // 0〜7 で danger
+const BGM_NORMAL_ROW = 10; // 10 以上で normal（ヒステリシス）
+let currentBgm = 'normal';
+
+function getHighestFilledRow(board) {
+  for (let y = 0; y < 20; y++) {
+    if (board[y].some((cell) => cell !== 0)) return y;
+  }
+  return 20;
+}
+
+function playBgmNormal() {
+  const normal = document.getElementById('bgm-normal');
+  const danger = document.getElementById('bgm-danger');
+  if (danger) danger.pause();
+  if (normal) {
+    normal.currentTime = 0;
+    normal.play().catch(() => {});
+  }
+  currentBgm = 'normal';
+}
+
+function playBgmDanger() {
+  const normal = document.getElementById('bgm-normal');
+  const danger = document.getElementById('bgm-danger');
+  if (normal) normal.pause();
+  if (danger) {
+    danger.currentTime = 0;
+    danger.play().catch(() => {});
+  }
+  currentBgm = 'danger';
+}
+
+function pauseAllBgm() {
+  const normal = document.getElementById('bgm-normal');
+  const danger = document.getElementById('bgm-danger');
+  if (normal) normal.pause();
+  if (danger) danger.pause();
+}
+
+function updateBgmFromBoard(board) {
+  const top = getHighestFilledRow(board);
+  if (top <= BGM_PINCH_ROW && currentBgm !== 'danger') playBgmDanger();
+  else if (top >= BGM_NORMAL_ROW && currentBgm !== 'normal') playBgmNormal();
+}
+
 function getDropIntervalForLevel(level) {
   return Math.max(400, 2000 * Math.pow(0.85, level - 1));
 }
@@ -667,11 +714,13 @@ class Tetris {
         }
       }
       this.draw();
+      if (!this.tutorialMode) updateBgmFromBoard(this.board);
     }, this.dropInterval);
   }
 
   // ★修正: ゲームオーバー処理（落下演出のあとモーダル表示）
   handleGameOver() {
+    if (!this.tutorialMode) pauseAllBgm();
     if (this.tutorialMode && this.tutorialCallbacks.onGameOver) {
       this.gameOver = true;
       clearInterval(this.gameLoop);
@@ -812,6 +861,7 @@ class Tetris {
   // ★修正: ゲーム一時停止（モーダル表示改善）
   pause() {
     this.paused = true;
+    if (!this.tutorialMode) pauseAllBgm();
     const modal = document.getElementById('pause-menu');
     modal.classList.add('show');
   }
@@ -821,6 +871,7 @@ class Tetris {
     this.paused = false;
     const modal = document.getElementById('pause-menu');
     modal.classList.remove('show');
+    if (!this.tutorialMode) (currentBgm === 'danger' ? playBgmDanger : playBgmNormal)();
   }
 
   // ★修正: ゲームリセット（デバイス別表示リセット）
@@ -878,6 +929,7 @@ class Tetris {
     this.startGameLoop();
     this.updateStageDisplay();
     this.draw();
+    if (!this.tutorialMode) playBgmNormal();
   }
 }
 
@@ -1150,6 +1202,8 @@ function quitToMenu() {
 
   // ★追加: スマホでメニュー戻り時にbody固定を解除
   document.body.classList.remove('game-active');
+
+  pauseAllBgm();
 
   // モーダル・ステージクリアトーストを閉じる
   document.querySelectorAll('.modal').forEach(modal => {
