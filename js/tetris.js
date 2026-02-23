@@ -2,11 +2,11 @@
 const HIGH_SCORE_STORAGE_KEY = 'tetrisHighScore';
 
 // PWA キャッシュ更新用（sw.js の CACHE_VERSION と揃える）
-const APP_VERSION = '1.0.8';
+const APP_VERSION = '1.0.9';
 
 // 音量設定（0–100 で保存、0–1 で再生に使用）
 const VOLUME_KEYS = { master: 'tetrisMasterVolume', bgm: 'tetrisBgmVolume', se: 'tetrisSeVolume' };
-const VOLUME_DEFAULTS = { master: 100, bgm: 60, se: 100 };
+const VOLUME_DEFAULTS = { master: 100, bgm: 90, se: 90 };
 
 function getStoredVolume(key) {
   try {
@@ -47,9 +47,9 @@ function applyBgmVolumeToElements() {
 }
 
 // SE 聞こえやすく: ダッキング（SE 再生時に BGM を一瞬下げる）＋ Web Audio で SE 増幅
-const BGM_DUCK_VOLUME = 0.15;
-const BGM_DUCK_DURATION_MS = 450;
-const SE_GAIN_BOOST = 1.8;
+const BGM_DUCK_VOLUME = 0.05;   // SE 再生中は BGM をほぼ絞る
+const BGM_DUCK_DURATION_MS = 550;
+const SE_GAIN_BOOST = 2.5;
 let seAudioContext = null;
 let seGainNodes = null;
 let bgmDuckTimeoutId = null;

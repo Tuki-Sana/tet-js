@@ -408,8 +408,8 @@ body.theme-dark .btn-success:hover {
   .start-actions .tutorial-btn,
   .start-actions .settings-btn {
     margin-top: 0;
-    flex: 1 1 auto;
-    min-width: 170px;
+    flex: 1 1 0;
+    min-width: 0;
     white-space: nowrap;
     padding-left: 24px;
     padding-right: 24px;
