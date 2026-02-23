@@ -8,7 +8,10 @@ const ASSETS = [
   './js/tetris.js',
   './manifest.json',
   './audio/bgm_normal.mp3',
-  './audio/bgm_danger.mp3'
+  './audio/bgm_danger.mp3',
+  './audio/iwa_gameover010.mp3',
+  './audio/play.mp3',
+  './audio/little_cure.mp3'
 ];
 
 self.addEventListener('install', (e) => {

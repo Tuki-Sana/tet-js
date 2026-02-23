@@ -75,6 +75,23 @@ function pauseAllBgm() {
   if (danger) danger.pause();
 }
 
+function playGameOverSe() {
+  const el = document.getElementById('se-gameover');
+  if (el) {
+    el.currentTime = 0;
+    el.play().catch(() => {});
+  }
+}
+
+function playLineClearSe(linesCleared) {
+  const id = linesCleared >= 3 ? 'se-line-many' : 'se-line-few';
+  const el = document.getElementById(id);
+  if (el) {
+    el.currentTime = 0;
+    el.play().catch(() => {});
+  }
+}
+
 function updateBgmFromBoard(board) {
   const top = getHighestFilledRow(board);
   if (top <= BGM_PINCH_ROW && currentBgm !== 'danger') playBgmDanger();
@@ -549,6 +566,7 @@ class Tetris {
     }
     
     if (linesCleared > 0) {
+      if (!this.tutorialMode) playLineClearSe(linesCleared);
       // 正確なテトリススコア計算
       let lineScore = 0;
       switch(linesCleared) {
@@ -720,7 +738,10 @@ class Tetris {
 
   // ★修正: ゲームオーバー処理（落下演出のあとモーダル表示）
   handleGameOver() {
-    if (!this.tutorialMode) pauseAllBgm();
+    if (!this.tutorialMode) {
+      pauseAllBgm();
+      playGameOverSe();
+    }
     if (this.tutorialMode && this.tutorialCallbacks.onGameOver) {
       this.gameOver = true;
       clearInterval(this.gameLoop);

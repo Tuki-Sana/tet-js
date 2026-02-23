@@ -414,7 +414,7 @@ body.theme-dark .btn-success:hover {
   margin-top: 12px;
 }
 
-/* スタート画面ボタン：デスクトップのみ */
+/* スタート画面ボタン：デスクトップのみ（ラベルが収まるよう最小幅・パディング調整） */
 @media (min-width: 769px) {
   .start-actions {
     display: flex;
@@ -424,7 +424,7 @@ body.theme-dark .btn-success:hover {
     margin-top: 20px;
     flex-wrap: wrap;
     width: 100%;
-    max-width: 520px;
+    max-width: 580px;
     margin-left: auto;
     margin-right: auto;
   }
@@ -432,9 +432,11 @@ body.theme-dark .btn-success:hover {
   .start-actions .tutorial-btn,
   .start-actions .theme-toggle-btn {
     margin-top: 0;
-    flex: 1;
-    min-width: 0;
+    flex: 1 1 auto;
+    min-width: 170px;
     white-space: nowrap;
+    padding-left: 24px;
+    padding-right: 24px;
   }
   #start-screen .rules-grid {
     grid-template-columns: 1fr 1fr;
@@ -1245,6 +1247,8 @@ body.mobile-device .menu-hint-mobile {
   .start-actions .theme-toggle-btn {
     width: 100%;
     max-width: 300px;
+    padding-left: 20px;
+    padding-right: 20px;
   }
 }
 

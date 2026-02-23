@@ -73,4 +73,5 @@ tet-js/
 - デプロイごとに `tetris.js` の `APP_VERSION` と `sw.js` の `CACHE_VERSION` を同じ値で上げるようにしている。スタート画面に v を表示してある。
 - E2E は `npm run test:e2e`（事前に `npx playwright install chromium`）。`test:e2e:ui` で UI モード。
 - BGM：魔王魂（[魔王魂](https://maou.audio)）。8bit29（通常）と 8bit25（ピンチ時）を使用。
+- 効果音：イワシロ音楽素材（[イワシロ音楽素材](https://iwashiro-sounds.work/)）。ゲームオーバー（iwa_gameover010）、ライン消去（play / little_cure・[SE2](https://iwashiro-sounds.work/bgm/iwashiro_se2/)）を使用。
 - 学習用クローン。Tetris は The Tetris Company の商標。
