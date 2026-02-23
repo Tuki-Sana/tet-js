@@ -1024,7 +1024,9 @@ body.theme-dark .tutorial-step-indicator {
 
 /* ★修正: 表示サイズは JS の adjustMobileCanvasSize() に任せ、1:2 アスペクトを維持（潰れ防止） */
 #mobile-game {
+  aspect-ratio: 1 / 2;
   max-width: 100%;
+  max-height: 100%;
   border: 2px solid var(--secondary);
   border-radius: 8px;
   box-shadow: var(--glow-primary), var(--shadow);
