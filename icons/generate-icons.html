@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>PWA アイコン生成</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    canvas { display: block; margin: 10px 0; border: 1px solid #ccc; }
+    button { margin-right: 8px; padding: 8px 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>PWA アイコン生成</h1>
+  <p>下のキャンバスを 192px / 512px の PNG として保存できます。icons フォルダに icon-192.png / icon-512.png として保存してください。</p>
+  <canvas id="c" width="512" height="512"></canvas>
+  <div>
+    <button id="b192">192px を保存</button>
+    <button id="b512">512px を保存</button>
+  </div>
+  <script>
+    const c = document.getElementById('c');
+    const ctx = c.getContext('2d');
+    const size = 512;
+    const pad = size * 0.15;
+    const block = (size - pad * 2) / 5;
+    const gap = block * 0.12;
+
+    ctx.fillStyle = '#f5f0e8';
+    ctx.fillRect(0, 0, size, size);
+
+    ctx.fillStyle = '#3d6b8a';
+    ctx.strokeStyle = '#2d5a75';
+    ctx.lineWidth = 4;
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col < 4; col++) {
+        const x = pad + col * (block + gap);
+        const y = pad + row * (block + gap);
+        ctx.fillRect(x, y, block, block);
+        ctx.strokeRect(x, y, block, block);
+      }
+    }
+
+    function download(w) {
+      const can = document.createElement('canvas');
+      can.width = can.height = w;
+      const cx = can.getContext('2d');
+      cx.drawImage(c, 0, 0, size, size, 0, 0, w, w);
+      const a = document.createElement('a');
+      a.download = 'icon-' + w + '.png';
+      a.href = can.toDataURL('image/png');
+      a.click();
+    }
+    document.getElementById('b192').onclick = () => download(192);
+    document.getElementById('b512').onclick = () => download(512);
+  </script>
+</body>
+</html>

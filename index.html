@@ -2,22 +2,35 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#3d6b8a">
   <title>テトリス</title>
+  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <button type="button" id="theme-toggle" class="theme-toggle" aria-label="テーマ切替" title="ライト/ダーク切替"><span class="theme-toggle-icon" aria-hidden="true"></span></button>
   <!-- スタート画面（1ページ目：ルール説明） -->
   <div id="start-screen" class="screen active">
     <div class="start-container">
       <div class="title-section">
-        <h1>🎮 テトリス 🎮</h1>
+        <h1>テ◯リス</h1>
         <p class="subtitle">落ちてくるテトラミノを操作してラインを消去しよう！</p>
       </div>
 
       <div class="rules-grid">
+        <!-- 遊び方・ステージとクリア -->
+        <div class="rule-card rule-card-wide">
+          <h3>遊び方</h3>
+          <div class="how-to-play">
+            <p>落ちてくるブロックを左右に動かしたり回転させて、<strong>横一列を揃えるとその行が消えます</strong>。</p>
+            <p><strong>10ライン消すとステージクリア</strong>。次のステージに進むと落下が速くなります。</p>
+            <p>ブロックが積み上がって新しいブロックが置けなくなったら<strong>ゲームオーバー</strong>。それまでにできるだけ多くのラインを消してスコアを伸ばすのが目的です。</p>
+          </div>
+        </div>
+
         <!-- 操作方法 -->
         <div class="rule-card">
           <h3>操作方法</h3>
@@ -41,9 +54,9 @@
               </span>
             </div>
             <div class="control-item">
-              <span class="control-desc">一時停止</span>
+              <span class="control-desc">一時停止（Pキー）</span>
               <span class="control-keys">
-                <span class="key">ESC</span>
+                <span class="key">P</span>
               </span>
             </div>
           </div>
@@ -74,11 +87,54 @@
         </div>
       </div>
 
-      <button class="start-btn" onclick="startGame()">ゲーム開始</button>
+      <div class="start-actions">
+        <button class="btn btn-primary start-btn" onclick="showDifficultyScreen()">ゲーム開始</button>
+        <button type="button" class="btn btn-primary tutorial-btn" onclick="showTutorialScreen()">チュートリアル</button>
+      </div>
     </div>
   </div>
 
-  <!-- ゲーム画面（2ページ目：プレイ専用） -->
+  <!-- チュートリアル画面（体験で操作を覚える） -->
+  <div id="tutorial-screen" class="screen">
+    <div class="tutorial-layout" id="tutorial-layout" data-step="">
+      <p class="tutorial-step-indicator" id="tutorial-step-indicator" aria-live="polite"></p>
+      <p class="tutorial-instruction" id="tutorial-instruction"></p>
+      <div class="tutorial-game-wrap">
+        <div class="game-area">
+          <div id="tutorial-tap-zones" class="tap-zones tap-zones-tutorial">
+            <div class="tap-zone tap-rotate" data-action="rotate"><span class="tutorial-zone-label">回転</span></div>
+            <div class="tap-zone tap-left" data-action="left"><span class="tutorial-zone-label">左</span></div>
+            <div class="tap-zone tap-right" data-action="right"><span class="tutorial-zone-label">右</span></div>
+            <div class="tap-zone tap-down" data-action="down"><span class="tutorial-zone-label">落下</span></div>
+          </div>
+          <canvas id="tutorial-canvas" width="300" height="600"></canvas>
+        </div>
+      </div>
+      <div class="tutorial-actions">
+        <button type="button" class="btn btn-secondary back-from-difficulty-btn" id="tutorial-back-btn" onclick="exitTutorial()">スタート画面へ戻る</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 難易度選択画面（ゲーム開始前に表示） -->
+  <div id="difficulty-screen" class="screen">
+    <div class="difficulty-screen-container">
+      <h2 class="difficulty-screen-title">難易度を選んでください</h2>
+      <div class="difficulty-section difficulty-section-centered">
+        <div class="difficulty-selector" role="group" aria-label="難易度選択">
+          <button type="button" class="difficulty-option active" data-difficulty="easy" aria-pressed="true">かんたん</button>
+          <button type="button" class="difficulty-option" data-difficulty="normal" aria-pressed="false">ふつう</button>
+          <button type="button" class="difficulty-option" data-difficulty="hard" aria-pressed="false">むずかしい</button>
+        </div>
+      </div>
+      <div class="difficulty-screen-buttons">
+        <button class="btn btn-primary start-btn" onclick="startGame()">スタート</button>
+        <button type="button" class="btn btn-secondary back-from-difficulty-btn" onclick="showStartScreen()">戻る</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ゲーム画面（3ページ目：プレイ専用） -->
   <div id="game-screen" class="screen">
     <!-- PC版レイアウト -->
     <div class="game-layout-pc">
@@ -97,7 +153,16 @@
             <span class="score-label">最高</span>
             <span class="score-value" id="high-score">0</span>
           </div>
+          <div class="score-item">
+            <span class="score-label">ステージ</span>
+            <span class="score-value" id="stage">1</span>
+          </div>
+          <div class="score-item">
+            <span class="score-label">あと</span>
+            <span class="score-value" id="stage-lines">0/10</span>
+          </div>
         </div>
+        <button type="button" class="btn btn-primary btn-sm pause-btn" onclick="pauseGame()" aria-label="一時停止" title="一時停止（Pキー）">⏸</button>
       </div>
 
       <!-- 中央ゲームエリア -->
@@ -135,14 +200,27 @@
           <span id="mobile-score">0</span>
           <small>スコア</small>
         </div>
+        <div class="mobile-high">
+          <span id="mobile-high-score">0</span>
+          <small>最高</small>
+        </div>
         <div class="mobile-level">
           <span id="mobile-level">1</span>
           <small>レベル</small>
+        </div>
+        <div class="mobile-stage">
+          <span id="mobile-stage">1</span>
+          <small>ステージ</small>
+        </div>
+        <div class="mobile-stage-lines">
+          <span id="mobile-stage-lines">0/10</span>
+          <small>あと</small>
         </div>
         <div class="mobile-next">
           <canvas id="mobile-next" width="40" height="40"></canvas>
           <small>NEXT</small>
         </div>
+        <button type="button" class="btn btn-primary btn-sm pause-btn pause-btn-mobile" onclick="pauseGame()" aria-label="一時停止" title="一時停止">⏸</button>
       </div>
 
       <!-- ゲームエリア -->
@@ -160,16 +238,17 @@
     </div>
   </div>
 
-  <!-- ESC メニュー -->
+  <!-- 一時停止メニュー -->
   <div id="pause-menu" class="modal">
     <div class="modal-content">
-      <h2>⏸️ 一時停止</h2>
+      <h2>一時停止</h2>
       <div class="menu-buttons">
-        <button onclick="resumeGame()" class="resume-btn">▶️ ゲーム再開</button>
-        <button onclick="restartGame()" class="restart-btn">🔄 やり直し</button>
-        <button onclick="backToMenu()" class="menu-btn">メニューに戻る</button>
+        <button onclick="resumeGame()" class="btn btn-primary resume-btn">ゲーム再開</button>
+        <button onclick="restartGame()" class="btn btn-success restart-btn">やり直し</button>
+        <button onclick="backToMenu()" class="btn btn-danger menu-btn">メニューに戻る</button>
       </div>
-      <p class="menu-hint">ESCキーで再開できます</p>
+      <p class="menu-hint menu-hint-pc">Pキーで再開できます</p>
+      <p class="menu-hint menu-hint-mobile">タップで再開できます</p>
     </div>
   </div>
 
@@ -186,12 +265,21 @@
           <span class="stat-label">到達レベル</span>
           <span class="stat-value" id="final-level">1</span>
         </div>
+        <div class="stat">
+          <span class="stat-label">消したライン</span>
+          <span class="stat-value" id="final-lines">0</span>
+        </div>
       </div>
       <div class="menu-buttons">
-        <button onclick="restartGame()" class="restart-btn">🔄 再挑戦</button>
-        <button onclick="backToMenu()" class="menu-btn">メニューに戻る</button>
+        <button onclick="restartGame()" class="btn btn-success restart-btn">再挑戦</button>
+        <button onclick="backToMenu()" class="btn btn-danger menu-btn">メニューに戻る</button>
       </div>
     </div>
+  </div>
+
+  <!-- ステージクリア表示（トースト） -->
+  <div id="stage-clear" class="stage-clear-toast" aria-live="polite" aria-hidden="true">
+    <span class="stage-clear-text"></span>
   </div>
 
   <script src="js/tetris.js"></script>

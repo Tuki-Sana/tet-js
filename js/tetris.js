@@ -1,12 +1,53 @@
-// 色パレット（テトラミノ別）
+// localStorage ハイスコア用キー
+const HIGH_SCORE_STORAGE_KEY = 'tetrisHighScore';
+
+// ハイスコア取得（不正値は 0）
+function getHighScore() {
+  try {
+    const v = parseInt(localStorage.getItem(HIGH_SCORE_STORAGE_KEY), 10);
+    return Number.isNaN(v) ? 0 : v;
+  } catch {
+    return 0;
+  }
+}
+
+// ハイスコア表示を一括更新
+function updateHighScoreDisplay(value) {
+  const n = String(value ?? getHighScore());
+  const el = document.getElementById('high-score');
+  if (el) el.textContent = n;
+  const mobileEl = document.getElementById('mobile-high-score');
+  if (mobileEl) mobileEl.textContent = n;
+}
+
+// 難易度設定（開始レベルと初期落下間隔 ms）
+const DIFFICULTY_CONFIG = {
+  easy:   { startingLevel: 1, dropInterval: 2000 },
+  normal: { startingLevel: 2, dropInterval: 1500 },
+  hard:   { startingLevel: 4, dropInterval: 900 }
+};
+const LINES_PER_STAGE = 10;
+
+function getDropIntervalForLevel(level) {
+  return Math.max(400, 2000 * Math.pow(0.85, level - 1));
+}
+
+// ゲームオーバー「画面を埋める」演出の設定
+const GAME_OVER_FILL = {
+  spawnIntervalMs: 280,
+  maxDurationMs: 4200,
+  fallSpeedPerFrame: 0.22
+};
+
+// 色パレット（海モチーフ・パステル）
 const PIECE_COLORS = [
-  '#00f5ff', // I型 - シアン
-  '#8b00ff', // T型 - パープル  
-  '#ff8c00', // L型 - オレンジ
-  '#0000ff', // J型 - ブルー
-  '#ffff00', // O型 - イエロー
-  '#00ff00', // S型 - グリーン
-  '#ff0000'  // Z型 - レッド
+  '#a8d8ea', // I型 - 空・スカイブルー
+  '#c4b5fd', // T型 - ラベンダー
+  '#7dd3c0', // L型 - 浅い海・ペールティール
+  '#5dade2', // J型 - 海・アクア
+  '#ffd6a5', // O型 - 砂・ペールピーチ
+  '#b5ead7', // S型 - 波・ミント
+  '#f8b4c4'  // Z型 - 朝焼け・ソフトピンク
 ];
 
 // デバイス判定関数
@@ -30,11 +71,40 @@ function setupMobileUI() {
   }
 }
 
+// タップゾーン操作の共通処理（本番・チュートリアルで利用）
+function performZoneAction(tetris, action) {
+  if (!tetris || tetris.gameOver || tetris.paused) return;
+  switch (action) {
+    case 'rotate': tetris.rotatePiece(); break;
+    case 'left': tetris.movePiece(-1, 0); break;
+    case 'right': tetris.movePiece(1, 0); break;
+    case 'down': tetris.movePiece(0, 1); break;
+  }
+}
+
+// 落下ゾーン長押しリピートの設定（初回即実行→遅延後に 80ms 間隔）
+const DOWN_REPEAT_DELAY_MS = 150;
+const DOWN_REPEAT_INTERVAL_MS = 80;
+
 // テトリスメインクラス
 class Tetris {
-  constructor(canvas) {
+  constructor(canvas, options = {}) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
+    
+    const difficulty = options.difficulty && DIFFICULTY_CONFIG[options.difficulty] ? options.difficulty : 'normal';
+    this.difficulty = difficulty;
+    const config = DIFFICULTY_CONFIG[difficulty];
+    this.startingLevel = config.startingLevel;
+    this.dropInterval = config.dropInterval;
+    
+    this.tutorialMode = !!options.tutorialMode;
+    this.tutorialCallbacks = options.tutorialCallbacks || {};
+    if (this.tutorialMode) {
+      this.dropInterval = 2200;
+      this.startingLevel = 1;
+      this.level = 1;
+    }
     
     // ★追加: デバイス判定
     this.isMobile = isMobileDevice();
@@ -44,18 +114,20 @@ class Tetris {
       this.adjustMobileCanvasSize();
     }
     
-    // ★修正: グリッドサイズをキャンバスに応じて調整
-    this.gridSize = this.isMobile ? 
-      Math.min(this.canvas.width / 10, this.canvas.height / 20) : 30;
+    // ★修正: グリッドサイズをキャンバスに応じて調整（チュートリアル・非標準サイズもキャンバスに合わせる）
+    const isTutorialCanvas = canvas.id === 'tutorial-canvas';
+    const isStandardPcSize = this.canvas.width === 300 && this.canvas.height === 600;
+    this.gridSize = (this.isMobile || isTutorialCanvas || !isStandardPcSize)
+      ? Math.min(this.canvas.width / 10, this.canvas.height / 20)
+      : 30;
     
     this.board = Array(20).fill().map(() => Array(10).fill(0));
     this.score = 0;
-    this.level = 1;
+    this.level = this.startingLevel;
     this.currentPiece = null;
     this.gameLoop = null;
     this.gameOver = false;
     this.paused = false;
-    this.dropInterval = 2000; // 初期速度をゆっくり（2秒）
     this.linesStacked = 0;
     this.linesCleared = 0;
     
@@ -75,15 +147,23 @@ class Tetris {
     }
     
     this.initializeNextPieces();
-    this.setupControls();
+    if (!this.tutorialMode) {
+      this.setupControls();
+    } else {
+      this.nextCanvases = [];
+      this.nextContexts = [];
+      if (this.isMobile) {
+        this.nextCanvas = null;
+        this.nextContext = null;
+      }
+    }
   }
 
-  // ★追加: モバイルキャンバスサイズ調整メソッド
+  // ★追加: モバイルキャンバスサイズ調整メソッド（iPhone 検索バー考慮で visualViewport 使用）
   adjustMobileCanvasSize() {
     const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    
-    // ★修正: より適切なサイズ計算
+    const viewportHeight = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+
     const maxWidth = Math.min(380, viewportWidth - 6);
     const maxHeight = Math.min(580, viewportHeight - 70);
     
@@ -129,105 +209,57 @@ class Tetris {
     document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
   }
 
-  // ★修正: スマホ専用タップ操作
+  // ★修正: スマホ専用タップ操作（performZoneAction 共通化・落下リピート 初回即時→80ms）
   setupMobileControls() {
-    // ★修正: デバイス別のタップゾーンを設定
     const tapZoneSelector = this.isMobile ? '#mobile-tap-zones .tap-zone' : '#tap-zones .tap-zone';
     const tapZones = document.querySelectorAll(tapZoneSelector);
-    let downInterval = null;
+    let downRepeatTimer = null;
+    let downRepeatInterval = null;
 
-    console.log(`Found ${tapZones.length} tap zones for mobile controls`);
+    const clearDownRepeat = () => {
+      if (downRepeatTimer) {
+        clearTimeout(downRepeatTimer);
+        downRepeatTimer = null;
+      }
+      if (downRepeatInterval) {
+        clearInterval(downRepeatInterval);
+        downRepeatInterval = null;
+      }
+    };
 
     tapZones.forEach(zone => {
       const action = zone.dataset.action;
 
-      // タッチ開始
-      zone.addEventListener('touchstart', (e) => {
+      const onStart = (e) => {
         e.preventDefault();
-        
         if (this.gameOver || this.paused) return;
 
-        console.log(`Touch action: ${action}`);
+        performZoneAction(this, action);
+        this.draw();
 
-        switch(action) {
-          case 'rotate':
-            this.rotatePiece();
-            this.draw();
-            break;
-          case 'left':
-            this.movePiece(-1, 0);
-            this.draw();
-            break;
-          case 'right':
-            this.movePiece(1, 0);
-            this.draw();
-            break;
-          case 'down':
-            // 即座に1回下移動
-            this.movePiece(0, 1);
-            this.draw();
-            // 連続下降開始
-            downInterval = setInterval(() => {
+        if (action === 'down') {
+          downRepeatTimer = setTimeout(() => {
+            downRepeatTimer = null;
+            downRepeatInterval = setInterval(() => {
               if (!this.gameOver && !this.paused) {
-                this.movePiece(0, 1);
+                performZoneAction(this, 'down');
                 this.draw();
               }
-            }, 100);
-            break;
+            }, DOWN_REPEAT_INTERVAL_MS);
+          }, DOWN_REPEAT_DELAY_MS);
         }
-      }, { passive: false });
+      };
 
-      // タッチ終了
-      zone.addEventListener('touchend', (e) => {
+      const onEnd = (e) => {
         e.preventDefault();
-        
-        // 下降の連続動作を停止
-        if (action === 'down' && downInterval) {
-          clearInterval(downInterval);
-          downInterval = null;
-        }
-      }, { passive: false });
+        if (action === 'down') clearDownRepeat();
+      };
 
-      // タッチキャンセル
-      zone.addEventListener('touchcancel', (e) => {
-        e.preventDefault();
-        
-        if (action === 'down' && downInterval) {
-          clearInterval(downInterval);
-          downInterval = null;
-        }
-      }, { passive: false });
-
-      // マウスイベント（デバッグ用）
-      zone.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        
-        if (this.gameOver || this.paused) return;
-
-        switch(action) {
-          case 'rotate':
-            this.rotatePiece();
-            break;
-          case 'left':
-            this.movePiece(-1, 0);
-            break;
-          case 'right':
-            this.movePiece(1, 0);
-            break;
-          case 'down':
-            this.movePiece(0, 1);
-            break;
-        }
-        this.draw();
-      });
-
-      zone.addEventListener('mouseup', (e) => {
-        e.preventDefault();
-        if (action === 'down' && downInterval) {
-          clearInterval(downInterval);
-          downInterval = null;
-        }
-      });
+      zone.addEventListener('touchstart', onStart, { passive: false });
+      zone.addEventListener('touchend', onEnd, { passive: false });
+      zone.addEventListener('touchcancel', onEnd, { passive: false });
+      zone.addEventListener('mousedown', onStart);
+      zone.addEventListener('mouseup', onEnd);
     });
   }
 
@@ -236,12 +268,13 @@ class Tetris {
     document.addEventListener('keydown', (e) => {
       if (this.gameOver) return;
       
-      if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
+      if (e.key === 'p' || e.key === 'P') {
         if (this.paused) {
           this.resume();
         } else {
           this.pause();
         }
+        e.preventDefault();
         return;
       }
       
@@ -473,12 +506,28 @@ class Tetris {
       }
       
       this.score += lineScore;
+      const prevLinesCleared = this.linesCleared;
       this.linesCleared += linesCleared;
       
-      // レベルアップ処理（10ライン消去ごと）
-      const newLevel = Math.floor(this.linesCleared / 10) + 1;
+      // レベル（難易度の開始レベル + 10ラインごと）
+      const newLevel = this.startingLevel + Math.floor(this.linesCleared / 10);
       if (newLevel > this.level) {
         this.level = newLevel;
+        const newInterval = getDropIntervalForLevel(this.level);
+        if (newInterval < this.dropInterval) {
+          this.dropInterval = newInterval;
+          if (this.gameLoop) {
+            clearInterval(this.gameLoop);
+            this.startGameLoop();
+          }
+        }
+      }
+      
+      // ステージ進行（10ラインごと）とクリア表示
+      const prevStage = Math.floor(prevLinesCleared / LINES_PER_STAGE) + 1;
+      const newStage = Math.floor(this.linesCleared / LINES_PER_STAGE) + 1;
+      if (!this.tutorialMode && newStage > prevStage) {
+        this.showStageClear(newStage);
       }
       
       // ★修正: デバイス別表示更新
@@ -493,6 +542,49 @@ class Tetris {
         if (scoreEl) scoreEl.textContent = this.score;
         if (levelEl) levelEl.textContent = this.level;
       }
+      this.updateStageDisplay();
+
+      // ハイスコア更新（上回ったら保存・表示更新）
+      const currentHigh = getHighScore();
+      if (this.score > currentHigh) {
+        try {
+          localStorage.setItem(HIGH_SCORE_STORAGE_KEY, String(this.score));
+          updateHighScoreDisplay(this.score);
+        } catch (_) {}
+      }
+      if (this.tutorialCallbacks.onLineCleared) {
+        this.tutorialCallbacks.onLineCleared(linesCleared);
+      }
+    }
+  }
+
+  updateStageDisplay() {
+    const stage = Math.floor(this.linesCleared / LINES_PER_STAGE) + 1;
+    const linesInStage = this.linesCleared % LINES_PER_STAGE;
+    const text = `${linesInStage}/${LINES_PER_STAGE}`;
+    const stageEl = document.getElementById('stage');
+    const linesEl = document.getElementById('stage-lines');
+    if (stageEl) stageEl.textContent = stage;
+    if (linesEl) linesEl.textContent = text;
+    const mobileStage = document.getElementById('mobile-stage');
+    const mobileLines = document.getElementById('mobile-stage-lines');
+    if (mobileStage) mobileStage.textContent = stage;
+    if (mobileLines) mobileLines.textContent = text;
+  }
+
+  showStageClear(stageNum) {
+    const toast = document.getElementById('stage-clear');
+    const textEl = toast ? toast.querySelector('.stage-clear-text') : null;
+    if (toast && textEl) {
+      textEl.textContent = `ステージ ${stageNum} クリア！`;
+      toast.classList.add('show');
+      toast.setAttribute('aria-hidden', 'false');
+      if (this._stageClearTimer) clearTimeout(this._stageClearTimer);
+      this._stageClearTimer = setTimeout(() => {
+        toast.classList.remove('show');
+        toast.setAttribute('aria-hidden', 'true');
+        this._stageClearTimer = null;
+      }, 1500);
     }
   }
 
@@ -522,7 +614,7 @@ class Tetris {
     this.board.forEach((row, y) => {
       row.forEach((value, x) => {
         if (value) {
-          this.ctx.fillStyle = PIECE_COLORS[value - 1] || '#4a90e2';
+          this.ctx.fillStyle = PIECE_COLORS[value - 1] || '#5dade2';
           this.ctx.fillRect(x * this.gridSize + 1, y * this.gridSize + 1, 
           this.gridSize - 2, this.gridSize - 2);
         }
@@ -569,18 +661,139 @@ class Tetris {
     }, this.dropInterval);
   }
 
-  // ★修正: ゲームオーバー処理（モーダル表示改善）
+  // ★修正: ゲームオーバー処理（落下演出のあとモーダル表示）
   handleGameOver() {
+    if (this.tutorialMode && this.tutorialCallbacks.onGameOver) {
+      this.gameOver = true;
+      clearInterval(this.gameLoop);
+      this.gameLoop = null;
+      this.tutorialCallbacks.onGameOver();
+      return;
+    }
     this.gameOver = true;
     clearInterval(this.gameLoop);
-    
-    // 少し遅延を入れて確実にモーダルを表示
-    setTimeout(() => {
-      const modal = document.getElementById('game-over');
-      modal.classList.add('show');
-      document.getElementById('final-score').textContent = this.score;
-      document.getElementById('final-level').textContent = this.level;
-    }, 100);
+    this.gameLoop = null;
+    this.gameOverFillPile = this.board.map(row => row.slice());
+    this.gameOverFillPieces = [];
+    this.gameOverFilling = true;
+    this.gameOverFillStartTime = null;
+    this.gameOverFillLastSpawn = 0;
+    this.gameOverFillRAF = null;
+    this.startGameOverFillAnimation();
+  }
+
+  startGameOverFillAnimation() {
+    this.gameOverFillStartTime = performance.now();
+    this.gameOverFillRAF = requestAnimationFrame((t) => this.stepGameOverFill(t));
+  }
+
+  stepGameOverFill(timestamp) {
+    if (!this.gameOverFilling) return;
+    const elapsed = timestamp - this.gameOverFillStartTime;
+    if (elapsed - this.gameOverFillLastSpawn >= GAME_OVER_FILL.spawnIntervalMs) {
+      this.gameOverFillLastSpawn = elapsed;
+      const shapeIndex = Math.floor(Math.random() * Tetris.SHAPES.length);
+      const shape = Tetris.SHAPES[shapeIndex];
+      const h = shape.length;
+      const w = shape[0].length;
+      const x = Math.floor(Math.random() * Math.max(1, 11 - w));
+      const y = -h - Math.random() * 2;
+      this.gameOverFillPieces.push({ shape, colorIndex: shapeIndex, x, y });
+    }
+    const g = this.gridSize;
+    const pile = this.gameOverFillPile;
+    const stillFalling = [];
+    for (const p of this.gameOverFillPieces) {
+      p.y += GAME_OVER_FILL.fallSpeedPerFrame;
+      let landed = false;
+      for (let sy = 0; sy < p.shape.length && !landed; sy++) {
+        for (let sx = 0; sx < p.shape[0].length; sx++) {
+          if (!p.shape[sy][sx]) continue;
+          const gy = p.y + sy;
+          const gx = p.x + sx;
+          if (gy >= 20) landed = true;
+          else if (gy >= 0 && gx >= 0 && gx < 10 && pile[Math.floor(gy)][Math.floor(gx)]) landed = true;
+        }
+      }
+      if (landed) {
+        for (let sy = 0; sy < p.shape.length; sy++) {
+          for (let sx = 0; sx < p.shape[0].length; sx++) {
+            if (!p.shape[sy][sx]) continue;
+            const gy = Math.floor(p.y + sy);
+            const gx = Math.floor(p.x + sx);
+            if (gy >= 0 && gy < 20 && gx >= 0 && gx < 10) pile[gy][gx] = p.colorIndex + 1;
+          }
+        }
+      } else {
+        stillFalling.push(p);
+      }
+    }
+    this.gameOverFillPieces = stillFalling;
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    if (!this.isMobile) {
+      this.ctx.strokeStyle = '#333';
+      this.ctx.lineWidth = 1;
+      for (let i = 0; i <= 10; i++) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(i * g, 0);
+        this.ctx.lineTo(i * g, this.canvas.height);
+        this.ctx.stroke();
+      }
+      for (let i = 0; i <= 20; i++) {
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, i * g);
+        this.ctx.lineTo(this.canvas.width, i * g);
+        this.ctx.stroke();
+      }
+    }
+    pile.forEach((row, y) => {
+      row.forEach((value, x) => {
+        if (value) {
+          this.ctx.fillStyle = PIECE_COLORS[value - 1] || '#5dade2';
+          this.ctx.fillRect(x * g + 1, y * g + 1, g - 2, g - 2);
+        }
+      });
+    });
+    this.gameOverFillPieces.forEach(p => {
+      this.ctx.fillStyle = PIECE_COLORS[p.colorIndex] || '#5dade2';
+      p.shape.forEach((row, sy) => {
+        row.forEach((cell, sx) => {
+          if (cell) {
+            const px = (p.x + sx) * g + 1;
+            const py = (p.y + sy) * g + 1;
+            this.ctx.fillRect(px, py, g - 2, g - 2);
+          }
+        });
+      });
+    });
+    const topFilled = pile[0].some(c => c !== 0);
+    const timeUp = elapsed >= GAME_OVER_FILL.maxDurationMs;
+    if (topFilled || timeUp) {
+      this.gameOverFilling = false;
+      if (this.gameOverFillRAF != null) {
+        cancelAnimationFrame(this.gameOverFillRAF);
+        this.gameOverFillRAF = null;
+      }
+      this.showGameOverModal();
+      return;
+    }
+    this.gameOverFillRAF = requestAnimationFrame((t) => this.stepGameOverFill(t));
+  }
+
+  showGameOverModal() {
+    const modal = document.getElementById('game-over');
+    if (modal) modal.classList.add('show');
+    const scoreEl = document.getElementById('final-score');
+    const levelEl = document.getElementById('final-level');
+    const linesEl = document.getElementById('final-lines');
+    if (scoreEl) scoreEl.textContent = this.score;
+    if (levelEl) levelEl.textContent = this.level;
+    if (linesEl) linesEl.textContent = this.linesCleared;
+    try {
+      const high = getHighScore();
+      if (this.score > high) localStorage.setItem(HIGH_SCORE_STORAGE_KEY, String(this.score));
+      updateHighScoreDisplay(getHighScore());
+    } catch (_) {}
   }
 
   // ★修正: ゲーム一時停止（モーダル表示改善）
@@ -600,12 +813,19 @@ class Tetris {
   // ★修正: ゲームリセット（デバイス別表示リセット）
   reset() {
     clearInterval(this.gameLoop);
+    this.gameOverFilling = false;
+    if (this.gameOverFillRAF != null) {
+      cancelAnimationFrame(this.gameOverFillRAF);
+      this.gameOverFillRAF = null;
+    }
     this.board = Array(20).fill().map(() => Array(10).fill(0));
     this.score = 0;
-    this.level = 1;
+    const config = DIFFICULTY_CONFIG[this.difficulty] || DIFFICULTY_CONFIG.normal;
+    this.startingLevel = config.startingLevel;
+    this.dropInterval = config.dropInterval;
+    this.level = this.startingLevel;
     this.linesStacked = 0;
     this.linesCleared = 0;
-    this.dropInterval = 2000; // リセット時も遅い初期速度
     this.gameOver = false;
     this.paused = false;
     
@@ -618,13 +838,16 @@ class Tetris {
       const mobileScore = document.getElementById('mobile-score');
       const mobileLevel = document.getElementById('mobile-level');
       if (mobileScore) mobileScore.textContent = '0';
-      if (mobileLevel) mobileLevel.textContent = '1';
+      if (mobileLevel) mobileLevel.textContent = String(this.startingLevel);
     } else {
       const scoreEl = document.getElementById('score');
       const levelEl = document.getElementById('level');
       if (scoreEl) scoreEl.textContent = '0';
-      if (levelEl) levelEl.textContent = '1';
+      if (levelEl) levelEl.textContent = String(this.startingLevel);
     }
+    this.updateStageDisplay();
+    // ハイスコア表示は保存値のまま更新
+    updateHighScoreDisplay(getHighScore());
   }
 
   // ★追加: 画面回転時のリサイズ対応
@@ -639,6 +862,7 @@ class Tetris {
   start() {
     this.createNewPiece();
     this.startGameLoop();
+    this.updateStageDisplay();
     this.draw();
   }
 }
@@ -654,9 +878,195 @@ function showScreen(screenId) {
   document.getElementById(screenId).classList.add('active');
 }
 
+function showDifficultyScreen() {
+  showScreen('difficulty-screen');
+}
+
+function showStartScreen() {
+  showScreen('start-screen');
+}
+
+// ========== チュートリアル ==========
+const TUTORIAL_STEPS = [
+  { id: 'move', message: '画面の左側をタップで左へ、右側をタップで右へ移動してみよう。（キーなら A / D）', completeOn: 'move' },
+  { id: 'rotate', message: '画面上部をタップしてブロックを回転させよう。（キーなら W）', completeOn: 'rotate' },
+  { id: 'drop', message: '画面下部をタップすると落下が速くなる。試してみよう。（キーなら S）', completeOn: 'drop' },
+  { id: 'line', message: '横一列を揃えるとラインが消える。1行消してみよう。', completeOn: 'lineCleared' },
+  { id: 'done', message: 'チュートリアル完了！ ゲームを楽しもう。', completeOn: null }
+];
+
+let tutorialTetris = null;
+let tutorialStepIndex = 0;
+let tutorialKeyHandler = null;
+let tutorialTapHandlerRefs = [];
+
+function getTutorialInstructionEl() {
+  return document.getElementById('tutorial-instruction');
+}
+
+function getTutorialLayoutEl() {
+  return document.getElementById('tutorial-layout');
+}
+
+function getTutorialStepIndicatorEl() {
+  return document.getElementById('tutorial-step-indicator');
+}
+
+function updateTutorialInstruction() {
+  const el = getTutorialInstructionEl();
+  const stepEl = getTutorialStepIndicatorEl();
+  const layoutEl = getTutorialLayoutEl();
+  const step = TUTORIAL_STEPS[tutorialStepIndex];
+  if (el && step) {
+    el.textContent = step.message;
+  }
+  if (stepEl) {
+    const total = 4;
+    if (step && step.completeOn) {
+      const current = Math.min(tutorialStepIndex + 1, total);
+      stepEl.textContent = `ステップ ${current} / ${total}`;
+    } else {
+      stepEl.textContent = '完了';
+    }
+  }
+  if (layoutEl && step) {
+    layoutEl.setAttribute('data-step', step.completeOn || '');
+  }
+}
+
+function advanceTutorialStep(reason) {
+  const step = TUTORIAL_STEPS[tutorialStepIndex];
+  if (!step || step.completeOn !== reason) return;
+  tutorialStepIndex++;
+  if (tutorialStepIndex >= TUTORIAL_STEPS.length) {
+    tutorialStepIndex = TUTORIAL_STEPS.length - 1;
+  }
+  updateTutorialInstruction();
+}
+
+function showTutorialScreen() {
+  showScreen('tutorial-screen');
+  tutorialStepIndex = 0;
+
+  const canvas = document.getElementById('tutorial-canvas');
+  if (!canvas) return;
+
+  const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+  const isDesktop = window.innerWidth >= 769;
+  const maxH = isDesktop ? 560 : 460;
+  const vhRatio = isDesktop ? 0.7 : 0.62;
+  const maxCanvasHeight = Math.min(maxH, Math.floor(vh * vhRatio));
+  const h = Math.max(200, maxCanvasHeight);
+  const w = Math.floor(h / 2);
+  canvas.width = w;
+  canvas.height = h;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+
+  updateTutorialInstruction();
+
+  tutorialTetris = new Tetris(canvas, {
+    difficulty: 'easy',
+    tutorialMode: true,
+    tutorialCallbacks: {
+      onLineCleared(count) {
+        if (count >= 1) advanceTutorialStep('lineCleared');
+      },
+      onGameOver() {
+        const el = getTutorialInstructionEl();
+        if (el) el.textContent = 'ブロックが積み上がった。スタート画面へ戻るか、もう一度チュートリアルを試そう。';
+      }
+    }
+  });
+  tutorialTetris.start();
+
+  tutorialKeyHandler = (e) => {
+    if (!tutorialTetris || tutorialTetris.gameOver) return;
+    const step = TUTORIAL_STEPS[tutorialStepIndex];
+    if (!step) return;
+    const k = e.key.toLowerCase();
+    if (step.completeOn === 'move' && (k === 'a' || k === 'd')) {
+      tutorialTetris.movePiece(k === 'a' ? -1 : 1, 0);
+      tutorialTetris.draw();
+      advanceTutorialStep('move');
+      e.preventDefault();
+    } else if (step.completeOn === 'rotate' && k === 'w') {
+      tutorialTetris.rotatePiece();
+      tutorialTetris.draw();
+      advanceTutorialStep('rotate');
+      e.preventDefault();
+    } else if (step.completeOn === 'drop' && k === 's') {
+      tutorialTetris.movePiece(0, 1);
+      tutorialTetris.draw();
+      advanceTutorialStep('drop');
+      e.preventDefault();
+    } else if (step.completeOn === 'lineCleared') {
+      if (k === 'a') tutorialTetris.movePiece(-1, 0);
+      else if (k === 'd') tutorialTetris.movePiece(1, 0);
+      else if (k === 'w') tutorialTetris.rotatePiece();
+      else if (k === 's') tutorialTetris.movePiece(0, 1);
+      if (k === 'a' || k === 'd' || k === 'w' || k === 's') {
+        tutorialTetris.draw();
+        e.preventDefault();
+      }
+    }
+  };
+  document.addEventListener('keydown', tutorialKeyHandler);
+
+  tutorialTapHandlerRefs = [];
+  const tapZones = document.querySelectorAll('#tutorial-tap-zones .tap-zone');
+  tapZones.forEach(zone => {
+    const action = zone.dataset.action;
+    const handler = (e) => {
+      e.preventDefault();
+      if (!tutorialTetris || tutorialTetris.gameOver) return;
+      const step = TUTORIAL_STEPS[tutorialStepIndex];
+      if (!step) return;
+
+      if (step.completeOn === 'move' && (action === 'left' || action === 'right')) {
+        performZoneAction(tutorialTetris, action);
+        tutorialTetris.draw();
+        advanceTutorialStep('move');
+      } else if (step.completeOn === 'rotate' && action === 'rotate') {
+        performZoneAction(tutorialTetris, action);
+        tutorialTetris.draw();
+        advanceTutorialStep('rotate');
+      } else if (step.completeOn === 'drop' && action === 'down') {
+        performZoneAction(tutorialTetris, action);
+        tutorialTetris.draw();
+        advanceTutorialStep('drop');
+      } else if (step.completeOn === 'lineCleared') {
+        performZoneAction(tutorialTetris, action);
+        tutorialTetris.draw();
+      }
+    };
+    zone.addEventListener('touchstart', handler, { passive: false });
+    zone.addEventListener('mousedown', handler);
+    tutorialTapHandlerRefs.push({ zone, handler, eventTypes: ['touchstart', 'mousedown'] });
+  });
+}
+
+function exitTutorial() {
+  if (tutorialTetris) {
+    clearInterval(tutorialTetris.gameLoop);
+    tutorialTetris = null;
+  }
+  if (tutorialKeyHandler) {
+    document.removeEventListener('keydown', tutorialKeyHandler);
+    tutorialKeyHandler = null;
+  }
+  tutorialTapHandlerRefs.forEach(({ zone, handler, eventTypes }) => {
+    eventTypes.forEach(ev => zone.removeEventListener(ev, handler));
+  });
+  tutorialTapHandlerRefs = [];
+  tutorialStepIndex = 0;
+  showScreen('start-screen');
+}
+
 // ★修正: ゲーム制御関数（デバイス別キャンバス選択改良）
 function startGame() {
   showScreen('game-screen');
+  updateHighScoreDisplay(getHighScore());
 
   if (isMobileDevice()) {
     document.body.classList.add('game-active');
@@ -674,8 +1084,11 @@ function startGame() {
     console.log('PC game canvas selected:', canvas);
   }
   
+  const selected = document.querySelector('.difficulty-option.active');
+  const difficulty = (selected && selected.dataset.difficulty) ? selected.dataset.difficulty : 'normal';
+  
   if (canvas) {
-    tetris = new Tetris(canvas);
+    tetris = new Tetris(canvas, { difficulty });
     tetris.start();
     console.log('Game started successfully');
   } else {
@@ -701,6 +1114,8 @@ function restartGame() {
   document.querySelectorAll('.modal').forEach(modal => {
     modal.classList.remove('show');
   });
+  const stageToast = document.getElementById('stage-clear');
+  if (stageToast) stageToast.classList.remove('show');
   
   if (tetris) {
     tetris.reset();
@@ -712,16 +1127,23 @@ function restartGame() {
 function quitToMenu() {
   if (tetris) {
     clearInterval(tetris.gameLoop);
+    tetris.gameOverFilling = false;
+    if (tetris.gameOverFillRAF != null) {
+      cancelAnimationFrame(tetris.gameOverFillRAF);
+      tetris.gameOverFillRAF = null;
+    }
     tetris = null;
   }
 
   // ★追加: スマホでメニュー戻り時にbody固定を解除
   document.body.classList.remove('game-active');
 
-  // モーダルを閉じる
+  // モーダル・ステージクリアトーストを閉じる
   document.querySelectorAll('.modal').forEach(modal => {
     modal.classList.remove('show');
   });
+  const stageToast = document.getElementById('stage-clear');
+  if (stageToast) stageToast.classList.remove('show');
   showScreen('start-screen');
 }
 
@@ -729,9 +1151,53 @@ function backToMenu() {
   quitToMenu();
 }
 
+// ========== テーマ（ライト/ダーク） ==========
+const THEME_STORAGE_KEY = 'tetrisTheme';
+
+function getPreferredTheme() {
+  try {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === 'dark' || stored === 'light') return stored;
+  } catch (_) {}
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function applyTheme(theme) {
+  if (theme === 'dark') {
+    document.body.classList.add('theme-dark');
+  } else {
+    document.body.classList.remove('theme-dark');
+  }
+}
+
+function toggleTheme() {
+  const current = document.body.classList.contains('theme-dark') ? 'dark' : 'light';
+  const next = current === 'dark' ? 'light' : 'dark';
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, next);
+  } catch (_) {}
+  applyTheme(next);
+}
+
 // 初期化処理
 document.addEventListener('DOMContentLoaded', () => {
   setupMobileUI();
+  applyTheme(getPreferredTheme());
+  const themeBtn = document.getElementById('theme-toggle');
+  if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
+  document.querySelectorAll('.difficulty-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.difficulty-option').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+    });
+  });
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
   console.log('Mobile device detected:', isMobileDevice());
 });
 
@@ -752,3 +1218,12 @@ window.addEventListener('resize', () => {
     tetris.handleResize();
   }
 });
+
+// ★追加: iPhone 検索バー出し入れ時にキャンバス再計算（visualViewport）
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    if (tetris && tetris.isMobile && tetris.canvas.id === 'mobile-game') {
+      tetris.handleResize();
+    }
+  });
+}
