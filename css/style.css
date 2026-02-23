@@ -1237,6 +1237,7 @@ body.mobile-device .menu-hint-mobile {
 
   .tap-zones {
     display: block;
+    --tap-side-w: 38%;
   }
 
   .rules-grid {
