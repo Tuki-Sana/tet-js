@@ -275,8 +275,10 @@ class Tetris {
       this.setupKeyboardControls();
     }
     
-    // スクロール防止（両デバイス共通）
-    document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+    // スクロール防止（ゲーム中のみ。メニュー戻り後はスタート画面のスクロールを許可）
+    document.addEventListener('touchmove', (e) => {
+      if (document.body.classList.contains('game-active')) e.preventDefault();
+    }, { passive: false });
   }
 
   // ★修正: スマホ専用タップ操作（performZoneAction 共通化・落下リピート 初回即時→80ms）
