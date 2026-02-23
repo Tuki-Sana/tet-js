@@ -65,30 +65,6 @@ body.theme-dark {
   --demo-down: rgba(110, 231, 183, 0.35);
 }
 
-/* テーマ切替ボタン（スタート画面内・ゲーム開始/チュートリアルと同じサイズ） */
-.theme-toggle-btn {
-  margin-top: 12px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-.theme-toggle-btn .theme-toggle-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.theme-toggle-icon::before {
-  content: '☽';
-  font-weight: 400;
-  line-height: 1;
-  display: inline-block;
-  transform: rotate(45deg);
-}
-body.theme-dark .theme-toggle-icon::before {
-  content: '☀';
-}
-
 /* バージョン表示（目視確認用） */
 .app-version {
   margin-top: 16px;
@@ -430,7 +406,6 @@ body.theme-dark .btn-success:hover {
   }
   .start-actions .start-btn,
   .start-actions .tutorial-btn,
-  .start-actions .theme-toggle-btn,
   .start-actions .settings-btn {
     margin-top: 0;
     flex: 1 1 auto;
@@ -1126,7 +1101,7 @@ body.mobile-device .menu-hint-mobile {
   display: block;
 }
 
-/* 音量設定モーダル */
+/* 設定モーダル（表示・音量） */
 .settings-modal-content {
   display: flex;
   flex-direction: column;
@@ -1137,6 +1112,33 @@ body.mobile-device .menu-hint-mobile {
 }
 .settings-modal-content h2 {
   margin-bottom: 0;
+}
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.settings-section-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 0 0 4px 0;
+}
+.settings-theme-row {
+  display: flex;
+  gap: 12px;
+}
+.theme-option-btn {
+  flex: 1;
+}
+.theme-option-btn[aria-pressed="true"] {
+  border-color: var(--primary);
+  background: rgba(90, 178, 255, 0.15);
+  color: var(--primary);
+}
+body.theme-dark .theme-option-btn[aria-pressed="true"] {
+  background: rgba(45, 212, 191, 0.2);
+  color: var(--primary);
 }
 .volume-controls {
   display: flex;
@@ -1299,7 +1301,6 @@ body.mobile-device .menu-hint-mobile {
 
   .start-actions .start-btn,
   .start-actions .tutorial-btn,
-  .start-actions .theme-toggle-btn,
   .start-actions .settings-btn {
     width: 100%;
     max-width: 300px;

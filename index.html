@@ -89,8 +89,7 @@
       <div class="start-actions">
         <button class="btn btn-primary start-btn" onclick="showDifficultyScreen()">ゲーム開始</button>
         <button type="button" class="btn btn-primary tutorial-btn" onclick="showTutorialScreen()">チュートリアル</button>
-        <button type="button" id="theme-toggle" class="btn btn-primary theme-toggle-btn" aria-label="テーマ切替" title="ライト/ダーク切替"><span class="theme-toggle-icon" aria-hidden="true"></span> ライト/ダーク</button>
-        <button type="button" id="settings-btn" class="btn btn-secondary settings-btn" aria-label="設定" title="音量設定" onclick="openSettingsModal()">設定</button>
+        <button type="button" id="settings-btn" class="btn btn-primary settings-btn" aria-label="設定" title="設定" onclick="openSettingsModal()">設定</button>
       </div>
       <p class="app-version" id="app-version" aria-hidden="true"></p>
     </div>
@@ -279,10 +278,19 @@
     </div>
   </div>
 
-  <!-- 音量設定モーダル -->
+  <!-- 設定モーダル（表示・音量） -->
   <div id="settings-modal" class="modal" aria-labelledby="settings-title" aria-hidden="true">
     <div class="modal-content settings-modal-content">
-      <h2 id="settings-title">音量</h2>
+      <h2 id="settings-title">設定</h2>
+      <section class="settings-section" aria-labelledby="settings-theme-label">
+        <h3 id="settings-theme-label" class="settings-section-title">表示</h3>
+        <div class="settings-theme-row" role="group" aria-label="テーマ">
+          <button type="button" id="theme-light-btn" class="btn btn-secondary theme-option-btn" data-theme="light" aria-pressed="true">ライト</button>
+          <button type="button" id="theme-dark-btn" class="btn btn-secondary theme-option-btn" data-theme="dark" aria-pressed="false">ダーク</button>
+        </div>
+      </section>
+      <section class="settings-section" aria-labelledby="settings-volume-label">
+        <h3 id="settings-volume-label" class="settings-section-title">音量</h3>
       <div class="volume-controls">
         <div class="volume-row">
           <label for="volume-master">マスター</label>
@@ -300,6 +308,7 @@
           <span id="volume-se-value" class="volume-value">100%</span>
         </div>
       </div>
+      </section>
       <button type="button" class="btn btn-primary close-settings-btn" onclick="closeSettingsModal()">閉じる</button>
     </div>
   </div>

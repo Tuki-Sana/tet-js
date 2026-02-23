@@ -2,7 +2,7 @@
 const HIGH_SCORE_STORAGE_KEY = 'tetrisHighScore';
 
 // PWA キャッシュ更新用（sw.js の CACHE_VERSION と揃える）
-const APP_VERSION = '1.0.5';
+const APP_VERSION = '1.0.6';
 
 // 音量設定（0–100 で保存、0–1 で再生に使用）
 const VOLUME_KEYS = { master: 'tetrisMasterVolume', bgm: 'tetrisBgmVolume', se: 'tetrisSeVolume' };
@@ -1316,10 +1316,42 @@ function toggleTheme() {
   applyTheme(next);
 }
 
-// ========== 音量設定モーダル ==========
+// ========== 設定モーダル（表示・音量） ==========
+function getCurrentTheme() {
+  return document.body.classList.contains('theme-dark') ? 'dark' : 'light';
+}
+
+function updateSettingsThemeUI() {
+  const theme = getCurrentTheme();
+  const lightBtn = document.getElementById('theme-light-btn');
+  const darkBtn = document.getElementById('theme-dark-btn');
+  if (lightBtn) {
+    lightBtn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
+  }
+  if (darkBtn) {
+    darkBtn.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+  }
+}
+
+function applyThemeFromSettings(theme) {
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+  } catch (_) {}
+  applyTheme(theme);
+  updateSettingsThemeUI();
+}
+
+function setupThemeButtonsInSettings() {
+  const lightBtn = document.getElementById('theme-light-btn');
+  const darkBtn = document.getElementById('theme-dark-btn');
+  if (lightBtn) lightBtn.addEventListener('click', () => applyThemeFromSettings('light'));
+  if (darkBtn) darkBtn.addEventListener('click', () => applyThemeFromSettings('dark'));
+}
+
 function openSettingsModal() {
   const modal = document.getElementById('settings-modal');
   if (!modal) return;
+  updateSettingsThemeUI();
   const keys = ['master', 'bgm', 'se'];
   keys.forEach((key) => {
     const val = getStoredVolume(key);
@@ -1367,8 +1399,7 @@ document.addEventListener('DOMContentLoaded', () => {
   applyTheme(getPreferredTheme());
   const versionEl = document.getElementById('app-version');
   if (versionEl) versionEl.textContent = 'v' + APP_VERSION;
-  const themeBtn = document.getElementById('theme-toggle');
-  if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
+  setupThemeButtonsInSettings();
   setupVolumeSliders();
   ['master', 'bgm', 'se'].forEach((key) => {
     const slider = document.getElementById('volume-' + key);
