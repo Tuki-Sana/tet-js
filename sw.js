@@ -1,5 +1,5 @@
 // tetris.js の APP_VERSION と揃えてデプロイごとにインクリメント
-const CACHE_VERSION = '1.0.9';
+const CACHE_VERSION = '1.0.10';
 const CACHE_NAME = 'tet-js-v' + CACHE_VERSION;
 const ASSETS = [
   './',

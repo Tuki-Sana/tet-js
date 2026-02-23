@@ -129,7 +129,7 @@
         </div>
       </div>
       <div class="difficulty-screen-buttons">
-        <button class="btn btn-primary start-btn" onclick="startGame()">スタート</button>
+        <button class="btn btn-primary start-btn" onclick="startGameAsync().catch(function(){})">スタート</button>
         <button type="button" class="btn btn-secondary back-from-difficulty-btn" onclick="showStartScreen()">戻る</button>
       </div>
     </div>
