@@ -72,5 +72,5 @@ tet-js/
 - PWA アイコンは `icons/generate-icons.html` で 192/512 の PNG を出して `icons/` に置いた（未設定でも動く）。アイコンは現在作成中。
 - デプロイごとに `tetris.js` の `APP_VERSION` と `sw.js` の `CACHE_VERSION` を同じ値で上げるようにしている。スタート画面に v を表示してある。
 - E2E は `npm run test:e2e`（事前に `npx playwright install chromium`）。`test:e2e:ui` で UI モード。
-- BGM は魔王魂の 8bit29（通常）と 8bit25（ピンチ時）。クレジット：森田交一（魔王魂）。
+- BGM：魔王魂（[魔王魂](https://maou.audio)）。8bit29（通常）と 8bit25（ピンチ時）を使用。
 - 学習用クローン。Tetris は The Tetris Company の商標。
