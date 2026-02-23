@@ -2,7 +2,7 @@
 const HIGH_SCORE_STORAGE_KEY = 'tetrisHighScore';
 
 // PWA キャッシュ更新用（sw.js の CACHE_VERSION と揃える）
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.0.2';
 
 // ハイスコア取得（不正値は 0）
 function getHighScore() {
@@ -51,6 +51,7 @@ function playBgmNormal() {
   const danger = document.getElementById('bgm-danger');
   if (danger) danger.pause();
   if (normal) {
+    normal.volume = 0.6;
     normal.currentTime = 0;
     normal.play().catch(() => {});
   }
@@ -62,6 +63,7 @@ function playBgmDanger() {
   const danger = document.getElementById('bgm-danger');
   if (normal) normal.pause();
   if (danger) {
+    danger.volume = 0.6;
     danger.currentTime = 0;
     danger.play().catch(() => {});
   }
