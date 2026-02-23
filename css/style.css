@@ -906,8 +906,10 @@ body.theme-dark .tutorial-step-indicator {
 
 .mobile-header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-around;
   align-items: center;
+  gap: 6px 8px;
   background: var(--glass);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--glass-border);
@@ -970,6 +972,12 @@ body.theme-dark .tutorial-step-indicator {
 
 /* スマホで文字を大きく（拡大しなくても読みやすく） */
 @media (max-width: 768px) {
+  /* テーマ切替とコンテンツが重ならないよう右に余白 */
+  #start-screen,
+  #tutorial-screen,
+  #difficulty-screen {
+    padding-right: 56px;
+  }
   #start-screen .how-to-play p {
     font-size: 1.05rem;
     line-height: 1.5;
@@ -1014,11 +1022,9 @@ body.theme-dark .tutorial-step-indicator {
   min-height: 0;
 }
 
-/* ★修正: iPhone向け画面いっぱいサイズ（dvh で検索バー考慮） */
+/* ★修正: 表示サイズは JS の adjustMobileCanvasSize() に任せ、1:2 アスペクトを維持（潰れ防止） */
 #mobile-game {
-  width: min(350px, calc(100vw - 10px)) !important;
-  height: min(550px, calc(100vh - 75px)) !important; /* fallback */
-  height: min(550px, calc(100dvh - 75px)) !important;
+  max-width: 100%;
   border: 2px solid var(--secondary);
   border-radius: 8px;
   box-shadow: var(--glow-primary), var(--shadow);
@@ -1276,12 +1282,6 @@ body.mobile-device .menu-hint-mobile {
   .mobile-game-area {
     padding: 3px;
   }
-
-  #mobile-game {
-    width: min(380px, calc(100vw - 6px)) !important;
-    height: min(580px, calc(100vh - 65px)) !important;
-    height: min(580px, calc(100dvh - 65px)) !important;
-  }
 }
 
 /* ★修正: 小画面対応 */
@@ -1299,12 +1299,6 @@ body.mobile-device .menu-hint-mobile {
     min-height: 60px;  /* ★修正: さらに縮小 */
   }
 
-  #mobile-game {
-    width: min(320px, calc(100vw - 8px)) !important;
-    height: min(520px, calc(100vh - 70px)) !important;
-    height: min(520px, calc(100dvh - 70px)) !important;
-  }
-
   .title-section h1 {
     font-size: 2.5rem;
   }
@@ -1319,12 +1313,5 @@ body.mobile-device .menu-hint-mobile {
 
   .mobile-game-area {
     padding: 3px;
-  }
-
-  #mobile-game {
-    width: min(450px, calc(100vh - 55px)) !important;
-    width: min(450px, calc(100dvh - 55px)) !important;
-    height: min(350px, calc(100vh - 55px)) !important;
-    height: min(350px, calc(100dvh - 55px)) !important;
   }
 }

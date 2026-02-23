@@ -854,6 +854,7 @@ class Tetris {
   handleResize() {
     if (this.isMobile && this.canvas.id === 'mobile-game') {
       this.adjustMobileCanvasSize();
+      this.gridSize = Math.min(this.canvas.width / 10, this.canvas.height / 20);
       this.draw(); // 再描画
     }
   }
@@ -1068,9 +1069,8 @@ function startGame() {
   showScreen('game-screen');
   updateHighScoreDisplay(getHighScore());
 
-  if (isMobileDevice()) {
-    document.body.classList.add('game-active');
-  }
+  /* ゲーム画面中はテーマ切替を非表示（エミュ・狭いビューポートでも重ならないように） */
+  document.body.classList.add('game-active');
 
   const isMobile = isMobileDevice();
   
