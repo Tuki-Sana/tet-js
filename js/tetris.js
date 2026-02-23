@@ -2,7 +2,7 @@
 const HIGH_SCORE_STORAGE_KEY = 'tetrisHighScore';
 
 // PWA キャッシュ更新用（sw.js の CACHE_VERSION と揃える）
-const APP_VERSION = '1.0.3';
+const APP_VERSION = '1.0.4';
 
 // ハイスコア取得（不正値は 0）
 function getHighScore() {
@@ -89,6 +89,7 @@ function playLineClearSe(linesCleared) {
   const id = linesCleared >= 3 ? 'se-line-many' : 'se-line-few';
   const el = document.getElementById(id);
   if (el) {
+    el.pause();
     el.currentTime = 0;
     el.play().catch(() => {});
   }
