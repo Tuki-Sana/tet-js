@@ -1061,6 +1061,39 @@ body.theme-dark .stage-clear-text {
   }
 }
 
+/* PWA更新案内トースト（画面上部） */
+.update-toast {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: 2px solid var(--primary);
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  box-shadow: var(--shadow);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s, visibility 0.25s;
+}
+.update-toast.show {
+  opacity: 1;
+  visibility: visible;
+}
+.update-toast-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.update-reload-btn {
+  flex-shrink: 0;
+}
+
 .modal-content {
   background: #fff;
   backdrop-filter: blur(20px);

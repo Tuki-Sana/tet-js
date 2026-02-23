@@ -2,7 +2,7 @@
 const HIGH_SCORE_STORAGE_KEY = 'tetrisHighScore';
 
 // PWA キャッシュ更新用（sw.js の CACHE_VERSION と揃える）
-const APP_VERSION = '2.0.3';
+const APP_VERSION = '2.0.4';
 
 // 音量設定（0–100 で保存、0–1 で再生に使用）
 const VOLUME_KEYS = { master: 'tetrisMasterVolume', bgm: 'tetrisBgmVolume', se: 'tetrisSeVolume' };
@@ -1508,7 +1508,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker
+      .register('sw.js', { updateViaCache: 'none' })
+      .then((reg) => {
+        reg.addEventListener('updatefound', () => {
+          const w = reg.installing;
+          if (!w) return;
+          w.addEventListener('statechange', () => {
+            if (w.state === 'installed' && navigator.serviceWorker.controller) {
+              const toast = document.getElementById('update-toast');
+              if (toast) {
+                toast.classList.add('show');
+                toast.setAttribute('aria-hidden', 'false');
+              }
+            }
+          });
+        });
+      })
+      .catch(() => {});
   }
   console.log('Mobile device detected:', isMobileDevice());
 });

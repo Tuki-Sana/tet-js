@@ -311,6 +311,12 @@
     <span class="stage-clear-text"></span>
   </div>
 
+  <!-- PWA更新案内（新しいバージョン検出時） -->
+  <div id="update-toast" class="update-toast" aria-live="polite" aria-hidden="true" role="status">
+    <span class="update-toast-text">更新があります。</span>
+    <button type="button" class="btn btn-primary btn-sm update-reload-btn" onclick="location.reload()">再読み込み</button>
+  </div>
+
   <!-- BGM（8bit29=通常 / 8bit25=ピンチ時・魔王魂） -->
   <audio id="bgm-normal" preload="auto" loop><source src="audio/bgm_normal.mp3" type="audio/mpeg"></audio>
   <audio id="bgm-danger" preload="auto" loop><source src="audio/bgm_danger.mp3" type="audio/mpeg"></audio>
