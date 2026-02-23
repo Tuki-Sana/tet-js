@@ -89,6 +89,15 @@ body.theme-dark .theme-toggle-icon::before {
   content: '☀';
 }
 
+/* バージョン表示（目視確認用） */
+.app-version {
+  margin-top: 16px;
+  margin-bottom: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
 * {
   margin: 0;
   padding: 0;

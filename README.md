@@ -71,5 +71,6 @@ tet-js/
 - **ハイスコア**は `localStorage` に保存（キー: `tetrisHighScore`）。プレイ中にハイスコアを更新するたびに保存し、ゲームオーバー時にも最終反映する。
 - デスクトップモードを強制する場合は URL に `?desktop=true` を付与
 - **PWA アイコン**: `icons/generate-icons.html` をブラウザで開き、192px / 512px の PNG を保存して `icons/` に置くと、ホーム画面追加時にアイコンが表示されます（未設定でも PWA は動作します）
+- **PWA の更新**: デプロイ時に `js/tetris.js` の `APP_VERSION` と `sw.js` の `CACHE_VERSION` を同じ値でインクリメントすると、キャッシュが切り替わりユーザーに最新版が配信されます。スタート画面にバージョン（v1.0.1 など）を表示しています。
 - **E2E テスト**: `npm install` のあと `npx playwright install chromium` でブラウザを入れ、`npm run test:e2e` で実行。`npm run test:e2e:ui` で UI モード。
 - 本プロジェクトは学習用のクローンです。Tetris は The Tetris Company の商標です。
