@@ -972,11 +972,15 @@ body.theme-dark .tutorial-step-indicator {
 
 /* スマホで文字を大きく（拡大しなくても読みやすく） */
 @media (max-width: 768px) {
-  /* テーマ切替とコンテンツが重ならないよう右に余白 */
-  #start-screen,
-  #tutorial-screen,
+  /* テーマ切替とコンテンツが重ならないよう左右に余白（対称で中央を保つ） */
+  #start-screen {
+    padding: 15px 56px;
+  }
+  #tutorial-screen {
+    padding: 8px 56px;
+  }
   #difficulty-screen {
-    padding-right: 56px;
+    padding: 20px 56px;
   }
   #start-screen .how-to-play p {
     font-size: 1.05rem;
