@@ -1006,15 +1006,15 @@ body.theme-dark .tutorial-step-indicator {
   display: flex;
 }
 
-/* ステージクリアトースト */
+/* ステージクリアトースト（下部表示でゲームエリアを覆わない） */
 .stage-clear-toast {
   position: fixed;
-  top: 50%;
+  bottom: 1.5rem;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   z-index: 1100;
-  padding: 24px 48px;
-  border-radius: 16px;
+  padding: 16px 32px;
+  border-radius: 12px;
   border: 2px solid #3d6b8a;
   background: var(--glass);
   backdrop-filter: blur(20px);
@@ -1030,7 +1030,7 @@ body.theme-dark .tutorial-step-indicator {
   animation: stageClearPop 0.4s ease-out;
 }
 .stage-clear-text {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: #3d6b8a;
 }
@@ -1038,9 +1038,19 @@ body.theme-dark .stage-clear-text {
   color: var(--primary);
 }
 @keyframes stageClearPop {
-  0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
-  60% { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  0% { transform: translateX(-50%) scale(0.8); opacity: 0; }
+  60% { transform: translateX(-50%) scale(1.05); opacity: 1; }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+@media (max-width: 768px) {
+  .stage-clear-toast {
+    bottom: 1rem;
+    padding: 10px 20px;
+    border-radius: 10px;
+  }
+  .stage-clear-text {
+    font-size: 1rem;
+  }
 }
 
 .modal-content {

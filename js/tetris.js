@@ -2,7 +2,7 @@
 const HIGH_SCORE_STORAGE_KEY = 'tetrisHighScore';
 
 // PWA キャッシュ更新用（sw.js の CACHE_VERSION と揃える）
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '2.0.1';
 
 // 音量設定（0–100 で保存、0–1 で再生に使用）
 const VOLUME_KEYS = { master: 'tetrisMasterVolume', bgm: 'tetrisBgmVolume', se: 'tetrisSeVolume' };
