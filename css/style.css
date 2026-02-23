@@ -875,14 +875,14 @@ body.theme-dark .tutorial-step-indicator {
   min-height: 65px;
 }
 
-.mobile-score, .mobile-high, .mobile-level, .mobile-stage, .mobile-stage-lines, .mobile-next {
+.mobile-score, .mobile-high, .mobile-level, .mobile-lines, .mobile-next {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
 }
 
-.mobile-score span, .mobile-high span, .mobile-level span, .mobile-stage span, .mobile-stage-lines span {
+.mobile-score span, .mobile-high span, .mobile-level span, .mobile-lines span {
   font-family: 'JetBrains Mono', monospace;
   font-size: 1.1rem;
   font-weight: 700;
@@ -956,8 +956,7 @@ body.theme-dark .tutorial-step-indicator {
   .mobile-score span,
   .mobile-high span,
   .mobile-level span,
-  .mobile-stage span,
-  .mobile-stage-lines span {
+  .mobile-lines span {
     font-size: 1.2rem;
   }
 }

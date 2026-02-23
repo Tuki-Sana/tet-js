@@ -2,7 +2,7 @@
 const HIGH_SCORE_STORAGE_KEY = 'tetrisHighScore';
 
 // PWA キャッシュ更新用（sw.js の CACHE_VERSION と揃える）
-const APP_VERSION = '2.0.1';
+const APP_VERSION = '2.0.2';
 
 // 音量設定（0–100 で保存、0–1 で再生に使用）
 const VOLUME_KEYS = { master: 'tetrisMasterVolume', bgm: 'tetrisBgmVolume', se: 'tetrisSeVolume' };
@@ -751,7 +751,7 @@ class Tetris {
         if (scoreEl) scoreEl.textContent = this.score;
         if (levelEl) levelEl.textContent = this.level;
       }
-      this.updateStageDisplay();
+      this.updateLinesDisplay();
 
       // ハイスコア更新（上回ったら保存・表示更新）
       const currentHigh = getHighScore();
@@ -767,18 +767,12 @@ class Tetris {
     }
   }
 
-  updateStageDisplay() {
-    const stage = Math.floor(this.linesCleared / LINES_PER_STAGE) + 1;
-    const linesInStage = this.linesCleared % LINES_PER_STAGE;
-    const text = `${linesInStage}/${LINES_PER_STAGE}`;
-    const stageEl = document.getElementById('stage');
-    const linesEl = document.getElementById('stage-lines');
-    if (stageEl) stageEl.textContent = stage;
-    if (linesEl) linesEl.textContent = text;
-    const mobileStage = document.getElementById('mobile-stage');
-    const mobileLines = document.getElementById('mobile-stage-lines');
-    if (mobileStage) mobileStage.textContent = stage;
-    if (mobileLines) mobileLines.textContent = text;
+  updateLinesDisplay() {
+    const n = String(this.linesCleared);
+    const linesEl = document.getElementById('lines');
+    const mobileLinesEl = document.getElementById('mobile-lines');
+    if (linesEl) linesEl.textContent = n;
+    if (mobileLinesEl) mobileLinesEl.textContent = n;
   }
 
   showStageClear(stageNum) {
@@ -1068,7 +1062,7 @@ class Tetris {
       if (scoreEl) scoreEl.textContent = '0';
       if (levelEl) levelEl.textContent = String(this.startingLevel);
     }
-    this.updateStageDisplay();
+    this.updateLinesDisplay();
     // ハイスコア表示は保存値のまま更新
     updateHighScoreDisplay(getHighScore());
   }
@@ -1086,7 +1080,7 @@ class Tetris {
   start() {
     this.createNewPiece();
     this.startGameLoop();
-    this.updateStageDisplay();
+    this.updateLinesDisplay();
     this.draw();
     if (!this.tutorialMode) playBgmNormal();
   }
