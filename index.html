@@ -213,11 +213,11 @@
           <canvas id="mobile-next" width="40" height="40"></canvas>
           <small>NEXT</small>
         </div>
-        <button type="button" class="btn btn-primary btn-sm pause-btn pause-btn-mobile" onclick="pauseGame()" aria-label="一時停止" title="一時停止"><span class="pause-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></span></button>
       </div>
 
-      <!-- ゲームエリア -->
+      <!-- ゲームエリア（一時停止は右上オーバーレイ） -->
       <div class="mobile-game-area">
+        <button type="button" class="btn btn-primary btn-sm pause-btn pause-btn-mobile pause-btn-overlay" onclick="pauseGame()" aria-label="一時停止" title="一時停止"><span class="pause-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></span></button>
         <div class="game-area">
           <div id="mobile-tap-zones" class="tap-zones">
             <div class="tap-zone tap-rotate" data-action="rotate"></div>

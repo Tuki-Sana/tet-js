@@ -961,7 +961,7 @@ body.theme-dark .tutorial-step-indicator {
   }
 }
 
-/* ★修正: モバイルゲームエリア - 余白最小化 */
+/* ★修正: モバイルゲームエリア - 余白最小化、一時停止オーバーレイ用に position: relative */
 .mobile-game-area {
   flex: 1;
   display: flex;
@@ -970,6 +970,15 @@ body.theme-dark .tutorial-step-indicator {
   padding: 5px; /* ★修正: 余白最小化 */
   overflow: hidden;
   min-height: 0;
+  position: relative;
+}
+
+/* 一時停止ボタン（ゲームエリア右上オーバーレイ） */
+.pause-btn-overlay {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
 }
 
 /* ★修正: 表示サイズは JS の adjustMobileCanvasSize() に任せ、1:2 アスペクトを維持（潰れ防止） */
