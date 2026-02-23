@@ -430,7 +430,8 @@ body.theme-dark .btn-success:hover {
   }
   .start-actions .start-btn,
   .start-actions .tutorial-btn,
-  .start-actions .theme-toggle-btn {
+  .start-actions .theme-toggle-btn,
+  .start-actions .settings-btn {
     margin-top: 0;
     flex: 1 1 auto;
     min-width: 170px;
@@ -1125,6 +1126,57 @@ body.mobile-device .menu-hint-mobile {
   display: block;
 }
 
+/* 音量設定モーダル */
+.settings-modal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 20px;
+  min-width: 280px;
+  max-width: 360px;
+}
+.settings-modal-content h2 {
+  margin-bottom: 0;
+}
+.volume-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.volume-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.volume-row label {
+  flex-shrink: 0;
+  width: 4.5em;
+  font-size: 0.95rem;
+  color: var(--text);
+  font-weight: 500;
+}
+.volume-slider {
+  flex: 1;
+  min-width: 0;
+  height: 8px;
+  accent-color: var(--primary);
+}
+.volume-value {
+  flex-shrink: 0;
+  min-width: 3em;
+  text-align: right;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.close-settings-btn {
+  align-self: center;
+  margin-top: 8px;
+}
+.settings-btn {
+  margin-top: 12px;
+}
+
 .result-stats {
   display: flex;
   justify-content: space-around;
@@ -1247,7 +1299,8 @@ body.mobile-device .menu-hint-mobile {
 
   .start-actions .start-btn,
   .start-actions .tutorial-btn,
-  .start-actions .theme-toggle-btn {
+  .start-actions .theme-toggle-btn,
+  .start-actions .settings-btn {
     width: 100%;
     max-width: 300px;
     padding-left: 20px;

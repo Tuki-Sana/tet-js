@@ -2,7 +2,49 @@
 const HIGH_SCORE_STORAGE_KEY = 'tetrisHighScore';
 
 // PWA キャッシュ更新用（sw.js の CACHE_VERSION と揃える）
-const APP_VERSION = '1.0.4';
+const APP_VERSION = '1.0.5';
+
+// 音量設定（0–100 で保存、0–1 で再生に使用）
+const VOLUME_KEYS = { master: 'tetrisMasterVolume', bgm: 'tetrisBgmVolume', se: 'tetrisSeVolume' };
+const VOLUME_DEFAULTS = { master: 100, bgm: 60, se: 100 };
+
+function getStoredVolume(key) {
+  try {
+    const v = parseInt(localStorage.getItem(VOLUME_KEYS[key]), 10);
+    if (Number.isNaN(v) || v < 0 || v > 100) return VOLUME_DEFAULTS[key];
+    return v;
+  } catch {
+    return VOLUME_DEFAULTS[key];
+  }
+}
+
+function setStoredVolume(key, value) {
+  const n = Math.max(0, Math.min(100, Math.round(value)));
+  try {
+    localStorage.setItem(VOLUME_KEYS[key], String(n));
+  } catch (_) {}
+  return n;
+}
+
+function getVolumeRatio(key) {
+  return getStoredVolume(key) / 100;
+}
+
+function getEffectiveBgmVolume() {
+  return getVolumeRatio('master') * getVolumeRatio('bgm');
+}
+
+function getEffectiveSeVolume() {
+  return getVolumeRatio('master') * getVolumeRatio('se');
+}
+
+function applyBgmVolumeToElements() {
+  const v = getEffectiveBgmVolume();
+  const normal = document.getElementById('bgm-normal');
+  const danger = document.getElementById('bgm-danger');
+  if (normal) normal.volume = v;
+  if (danger) danger.volume = v;
+}
 
 // ハイスコア取得（不正値は 0）
 function getHighScore() {
@@ -51,7 +93,7 @@ function playBgmNormal() {
   const danger = document.getElementById('bgm-danger');
   if (danger) danger.pause();
   if (normal) {
-    normal.volume = 0.6;
+    normal.volume = getEffectiveBgmVolume();
     normal.currentTime = 0;
     normal.play().catch(() => {});
   }
@@ -63,7 +105,7 @@ function playBgmDanger() {
   const danger = document.getElementById('bgm-danger');
   if (normal) normal.pause();
   if (danger) {
-    danger.volume = 0.6;
+    danger.volume = getEffectiveBgmVolume();
     danger.currentTime = 0;
     danger.play().catch(() => {});
   }
@@ -80,6 +122,7 @@ function pauseAllBgm() {
 function playGameOverSe() {
   const el = document.getElementById('se-gameover');
   if (el) {
+    el.volume = getEffectiveSeVolume();
     el.currentTime = 0;
     el.play().catch(() => {});
   }
@@ -89,6 +132,7 @@ function playLineClearSe(linesCleared) {
   const id = linesCleared >= 3 ? 'se-line-many' : 'se-line-few';
   const el = document.getElementById(id);
   if (el) {
+    el.volume = getEffectiveSeVolume();
     el.pause();
     el.currentTime = 0;
     el.play().catch(() => {});
@@ -1272,6 +1316,51 @@ function toggleTheme() {
   applyTheme(next);
 }
 
+// ========== 音量設定モーダル ==========
+function openSettingsModal() {
+  const modal = document.getElementById('settings-modal');
+  if (!modal) return;
+  const keys = ['master', 'bgm', 'se'];
+  keys.forEach((key) => {
+    const val = getStoredVolume(key);
+    const slider = document.getElementById('volume-' + key);
+    const valueEl = document.getElementById('volume-' + key + '-value');
+    if (slider) {
+      slider.value = val;
+      slider.setAttribute('aria-valuenow', val);
+    }
+    if (valueEl) valueEl.textContent = val + '%';
+  });
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function closeSettingsModal() {
+  const modal = document.getElementById('settings-modal');
+  if (modal) {
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+  applyBgmVolumeToElements();
+}
+
+function setupVolumeSliders() {
+  const keys = ['master', 'bgm', 'se'];
+  keys.forEach((key) => {
+    const slider = document.getElementById('volume-' + key);
+    const valueEl = document.getElementById('volume-' + key + '-value');
+    if (!slider || !valueEl) return;
+    const update = () => {
+      const val = setStoredVolume(key, Number(slider.value));
+      valueEl.textContent = val + '%';
+      slider.setAttribute('aria-valuenow', val);
+      applyBgmVolumeToElements();
+    };
+    slider.addEventListener('input', update);
+    slider.addEventListener('change', update);
+  });
+}
+
 // 初期化処理
 document.addEventListener('DOMContentLoaded', () => {
   setupMobileUI();
@@ -1280,6 +1369,14 @@ document.addEventListener('DOMContentLoaded', () => {
   if (versionEl) versionEl.textContent = 'v' + APP_VERSION;
   const themeBtn = document.getElementById('theme-toggle');
   if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
+  setupVolumeSliders();
+  ['master', 'bgm', 'se'].forEach((key) => {
+    const slider = document.getElementById('volume-' + key);
+    const valueEl = document.getElementById('volume-' + key + '-value');
+    const val = getStoredVolume(key);
+    if (slider) slider.value = val;
+    if (valueEl) valueEl.textContent = val + '%';
+  });
   document.querySelectorAll('.difficulty-option').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.difficulty-option').forEach(b => {

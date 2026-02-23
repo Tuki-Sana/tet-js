@@ -90,6 +90,7 @@
         <button class="btn btn-primary start-btn" onclick="showDifficultyScreen()">ゲーム開始</button>
         <button type="button" class="btn btn-primary tutorial-btn" onclick="showTutorialScreen()">チュートリアル</button>
         <button type="button" id="theme-toggle" class="btn btn-primary theme-toggle-btn" aria-label="テーマ切替" title="ライト/ダーク切替"><span class="theme-toggle-icon" aria-hidden="true"></span> ライト/ダーク</button>
+        <button type="button" id="settings-btn" class="btn btn-secondary settings-btn" aria-label="設定" title="音量設定" onclick="openSettingsModal()">設定</button>
       </div>
       <p class="app-version" id="app-version" aria-hidden="true"></p>
     </div>
@@ -275,6 +276,31 @@
         <button onclick="restartGame()" class="btn btn-success restart-btn">再挑戦</button>
         <button onclick="backToMenu()" class="btn btn-danger menu-btn">メニューに戻る</button>
       </div>
+    </div>
+  </div>
+
+  <!-- 音量設定モーダル -->
+  <div id="settings-modal" class="modal" aria-labelledby="settings-title" aria-hidden="true">
+    <div class="modal-content settings-modal-content">
+      <h2 id="settings-title">音量</h2>
+      <div class="volume-controls">
+        <div class="volume-row">
+          <label for="volume-master">マスター</label>
+          <input type="range" id="volume-master" class="volume-slider" min="0" max="100" step="10" value="100" aria-valuemin="0" aria-valuemax="100">
+          <span id="volume-master-value" class="volume-value">100%</span>
+        </div>
+        <div class="volume-row">
+          <label for="volume-bgm">BGM</label>
+          <input type="range" id="volume-bgm" class="volume-slider" min="0" max="100" step="10" value="60" aria-valuemin="0" aria-valuemax="100">
+          <span id="volume-bgm-value" class="volume-value">60%</span>
+        </div>
+        <div class="volume-row">
+          <label for="volume-se">効果音</label>
+          <input type="range" id="volume-se" class="volume-slider" min="0" max="100" step="10" value="100" aria-valuemin="0" aria-valuemax="100">
+          <span id="volume-se-value" class="volume-value">100%</span>
+        </div>
+      </div>
+      <button type="button" class="btn btn-primary close-settings-btn" onclick="closeSettingsModal()">閉じる</button>
     </div>
   </div>
 
