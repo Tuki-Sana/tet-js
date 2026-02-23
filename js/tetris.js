@@ -953,8 +953,8 @@ function showTutorialScreen() {
 
   const vh = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
   const isDesktop = window.innerWidth >= 769;
-  const maxH = isDesktop ? 560 : 460;
-  const vhRatio = isDesktop ? 0.7 : 0.62;
+  const maxH = isDesktop ? 560 : 520;
+  const vhRatio = isDesktop ? 0.7 : 0.76;
   const maxCanvasHeight = Math.min(maxH, Math.floor(vh * vhRatio));
   const h = Math.max(200, maxCanvasHeight);
   const w = Math.floor(h / 2);
