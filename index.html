@@ -53,6 +53,12 @@
               </span>
             </div>
             <div class="control-item">
+              <span class="control-desc">ホールド</span>
+              <span class="control-keys">
+                <span class="key">C</span>
+              </span>
+            </div>
+            <div class="control-item">
               <span class="control-desc">一時停止（Pキー）</span>
               <span class="control-keys">
                 <span class="key">P</span>
@@ -178,6 +184,10 @@
 
       <!-- 右パネル -->
       <div class="right-panel">
+        <div class="hold-panel">
+          <h4>HOLD</h4>
+          <canvas id="hold-piece" width="60" height="60" aria-hidden="true"></canvas>
+        </div>
         <div class="next-panel">
           <h4>NEXT</h4>
           <div class="next-list">
@@ -209,6 +219,7 @@
           <span id="mobile-lines">0</span>
           <small>LINES</small>
         </div>
+        <button type="button" class="btn btn-sm hold-btn-mobile" id="mobile-hold-btn" onclick="holdGame()" aria-label="ホールド" title="ホールド">HOLD</button>
         <div class="mobile-next">
           <canvas id="mobile-next" width="40" height="40"></canvas>
           <small>NEXT</small>

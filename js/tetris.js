@@ -403,6 +403,9 @@ class Tetris {
     this.paused = false;
     this.linesStacked = 0;
     this.linesCleared = 0;
+    this.combo = 0;
+    this.holdIndex = null;
+    this.canHold = true;
     
     // ★修正: デバイス別NEXT設定
     if (this.isMobile) {
@@ -417,6 +420,8 @@ class Tetris {
         document.getElementById('next-piece-3')
       ];
       this.nextContexts = this.nextCanvases.map(canvas => canvas ? canvas.getContext('2d') : null);
+      this.holdCanvas = document.getElementById('hold-piece');
+      this.holdContext = this.holdCanvas ? this.holdCanvas.getContext('2d') : null;
     }
     
     this.initializeNextPieces();
@@ -560,6 +565,7 @@ class Tetris {
         case 'd': this.movePiece(1, 0); break;
         case 's': this.movePiece(0, 1); break;
         case 'w': this.rotatePiece(); break;
+        case 'c': this.holdPiece(); break;
       }
       this.draw();
     });
@@ -635,6 +641,7 @@ class Tetris {
 
   // 新しいピース生成
   createNewPiece() {
+    this.canHold = true;
     const shapeIndex = this.nextPieces.shift();
     const shape = Tetris.SHAPES[shapeIndex];
     
@@ -647,6 +654,59 @@ class Tetris {
     
     this.nextPieces.push(Math.floor(Math.random() * Tetris.SHAPES.length));
     this.drawNextPieces();
+  }
+
+  // ホールド: 現在ピースをストックし、ストックがあればそれに差し替え、なければNEXTから生成
+  holdPiece() {
+    if (!this.currentPiece || this.gameOver || this.paused || !this.canHold) return;
+    const savedIndex = this.currentPiece.shapeIndex;
+    if (this.holdIndex !== null) {
+      const shape = Tetris.SHAPES[this.holdIndex].map(row => row.slice());
+      const w = shape[0].length;
+      this.currentPiece = {
+        shape,
+        shapeIndex: this.holdIndex,
+        x: Math.floor(this.board[0].length / 2) - Math.floor(w / 2),
+        y: 0
+      };
+      this.holdIndex = savedIndex;
+    } else {
+      this.holdIndex = savedIndex;
+      const nextIndex = this.nextPieces.shift();
+      const shape = Tetris.SHAPES[nextIndex].map(row => row.slice());
+      const w = shape[0].length;
+      this.currentPiece = {
+        shape,
+        shapeIndex: nextIndex,
+        x: Math.floor(this.board[0].length / 2) - Math.floor(w / 2),
+        y: 0
+      };
+      this.nextPieces.push(Math.floor(Math.random() * Tetris.SHAPES.length));
+    }
+    this.canHold = false;
+    this.drawNextPieces();
+    this.drawHoldPiece();
+    this.draw();
+  }
+
+  drawHoldPiece() {
+    if (!this.holdContext) return;
+    const canvas = this.holdCanvas;
+    this.holdContext.clearRect(0, 0, canvas.width, canvas.height);
+    if (this.holdIndex === null) return;
+    const shape = Tetris.SHAPES[this.holdIndex];
+    const color = PIECE_COLORS[this.holdIndex];
+    const size = 12;
+    const offsetX = (canvas.width - shape[0].length * size) / 2;
+    const offsetY = (canvas.height - shape.length * size) / 2;
+    this.holdContext.fillStyle = color;
+    shape.forEach((row, y) => {
+      row.forEach((value, x) => {
+        if (value) {
+          this.holdContext.fillRect(offsetX + x * size, offsetY + y * size, size - 1, size - 1);
+        }
+      });
+    });
   }
 
   // 衝突判定
@@ -669,6 +729,16 @@ class Tetris {
     return false;
   }
 
+  // ゴースト: 現在ピースの着地Yを返す
+  getGhostY() {
+    if (!this.currentPiece) return 0;
+    let gy = this.currentPiece.y;
+    while (!this.checkCollision(this.currentPiece.x, gy + 1, this.currentPiece.shape)) {
+      gy++;
+    }
+    return gy;
+  }
+
   // ピース移動
   movePiece(dx, dy) {
     if (this.gameOver || this.paused) return false;
@@ -683,23 +753,22 @@ class Tetris {
     return false;
   }
 
-  // ピース回転
+  // ピース回転（その場で時計回り90度、壁蹴りなし）
   rotatePiece() {
     if (this.gameOver || this.paused) return;
-    
+
     const shape = this.currentPiece.shape;
     const rotatedShape = [];
     const rows = shape.length;
     const cols = shape[0].length;
-    
-    // 時計回り90度回転: [row][col] -> [col][rows-1-row]
+
     for (let newRow = 0; newRow < cols; newRow++) {
       rotatedShape[newRow] = [];
       for (let newCol = 0; newCol < rows; newCol++) {
         rotatedShape[newRow][newCol] = shape[rows - 1 - newCol][newRow];
       }
     }
-    
+
     if (!this.checkCollision(this.currentPiece.x, this.currentPiece.y, rotatedShape)) {
       this.currentPiece.shape = rotatedShape;
     }
@@ -758,7 +827,7 @@ class Tetris {
     }
   }
 
-  // ★修正: ライン消去処理（デバイス別表示更新）
+  // ★修正: ライン消去処理（デバイス別表示更新）。戻り値: 消した行数
   clearLines() {
     let linesCleared = 0;
     for (let row = this.board.length - 1; row >= 0; row--) {
@@ -782,6 +851,10 @@ class Tetris {
       }
       
       this.score += lineScore;
+      // コンボボーナス（連続で消した回数に応じて加算）
+      this.score += 50 * this.level * this.combo;
+      this.combo++;
+      
       const prevLinesCleared = this.linesCleared;
       this.linesCleared += linesCleared;
       
@@ -831,7 +904,10 @@ class Tetris {
       if (this.tutorialCallbacks.onLineCleared) {
         this.tutorialCallbacks.onLineCleared(linesCleared);
       }
+    } else {
+      this.combo = 0;
     }
+    return linesCleared;
   }
 
   updateLinesDisplay() {
@@ -891,6 +967,29 @@ class Tetris {
         }
       });
     });
+
+    // ゴーストブロック（着地位置を半透明で表示）
+    if (this.currentPiece && !this.gameOver) {
+      const ghostY = this.getGhostY();
+      if (ghostY !== this.currentPiece.y) {
+        this.ctx.globalAlpha = 0.25;
+        this.ctx.fillStyle = PIECE_COLORS[this.currentPiece.shapeIndex];
+        this.currentPiece.shape.forEach((row, y) => {
+          row.forEach((value, x) => {
+            if (value) {
+              const w = this.gridSize - 2;
+              const h = w * BLOCK_HEIGHT_RATIO;
+              this.ctx.fillRect(
+                (this.currentPiece.x + x) * this.gridSize + 1,
+                (ghostY + y) * this.gridSize + 1,
+                w, h
+              );
+            }
+          });
+        });
+        this.ctx.globalAlpha = 1;
+      }
+    }
 
     // 現在のピース描画（色付き）
     if (this.currentPiece && !this.gameOver) {
@@ -997,8 +1096,11 @@ class Tetris {
     this.level = this.startingLevel;
     this.linesStacked = 0;
     this.linesCleared = 0;
+    this.combo = 0;
     this.gameOver = false;
     this.paused = false;
+    this.holdIndex = null;
+    this.canHold = true;
     
     // NEXTピースもリセット
     this.nextPieces = [];
@@ -1019,6 +1121,7 @@ class Tetris {
     this.updateLinesDisplay();
     // ハイスコア表示は保存値のまま更新
     updateHighScoreDisplay(getHighScore());
+    this.drawHoldPiece();
   }
 
   // ★追加: 画面回転時のリサイズ対応
@@ -1284,6 +1387,10 @@ function resumeGame() {
   if (tetris) {
     tetris.resume();
   }
+}
+
+function holdGame() {
+  if (tetris) tetris.holdPiece();
 }
 
 // ★修正: ゲーム再開時の処理改善
