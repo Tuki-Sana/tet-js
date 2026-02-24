@@ -412,6 +412,10 @@ class Tetris {
       this.nextPieces = [];
       this.nextCanvas = document.getElementById('mobile-next');
       this.nextContext = this.nextCanvas ? this.nextCanvas.getContext('2d') : null;
+      this.holdCanvas = document.getElementById('mobile-hold-piece');
+      this.holdContext = this.holdCanvas ? this.holdCanvas.getContext('2d') : null;
+      this.holdBtnMobile = document.getElementById('mobile-hold-btn');
+      this.holdPreviewMobile = document.getElementById('mobile-hold-preview');
     } else {
       this.nextPieces = [];
       this.nextCanvases = [
@@ -693,10 +697,21 @@ class Tetris {
     if (!this.holdContext) return;
     const canvas = this.holdCanvas;
     this.holdContext.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (this.isMobile && this.holdBtnMobile && this.holdPreviewMobile) {
+      if (this.holdIndex === null) {
+        this.holdBtnMobile.style.display = '';
+        this.holdPreviewMobile.style.display = 'none';
+        return;
+      }
+      this.holdBtnMobile.style.display = 'none';
+      this.holdPreviewMobile.style.display = 'flex';
+    }
+
     if (this.holdIndex === null) return;
     const shape = Tetris.SHAPES[this.holdIndex];
     const color = PIECE_COLORS[this.holdIndex];
-    const size = 12;
+    const size = this.isMobile ? 10 : 12;
     const offsetX = (canvas.width - shape[0].length * size) / 2;
     const offsetY = (canvas.height - shape.length * size) / 2;
     this.holdContext.fillStyle = color;

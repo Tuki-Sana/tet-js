@@ -919,11 +919,34 @@ body.theme-dark .tutorial-step-indicator {
   min-height: 65px;
 }
 
-.mobile-score, .mobile-high, .mobile-level, .mobile-lines, .mobile-next {
+.mobile-score, .mobile-high, .mobile-level, .mobile-lines, .mobile-next, .mobile-hold-slot {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
+}
+
+.mobile-hold-slot {
+  flex-shrink: 0;
+}
+
+.mobile-hold-preview {
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  padding: 2px 0;
+}
+
+.mobile-hold-preview canvas {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #000;
+  box-shadow: var(--shadow);
+}
+
+.mobile-hold-preview:active {
+  opacity: 0.85;
 }
 
 .mobile-score span, .mobile-high span, .mobile-level span, .mobile-lines span {

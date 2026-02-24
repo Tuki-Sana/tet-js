@@ -219,7 +219,13 @@
           <span id="mobile-lines">0</span>
           <small>LINES</small>
         </div>
-        <button type="button" class="btn btn-sm hold-btn-mobile" id="mobile-hold-btn" onclick="holdGame()" aria-label="ホールド" title="ホールド">HOLD</button>
+        <div class="mobile-hold-slot">
+          <button type="button" class="btn btn-sm hold-btn-mobile" id="mobile-hold-btn" onclick="holdGame()" aria-label="ホールド" title="ホールド">HOLD</button>
+          <div class="mobile-hold-preview" id="mobile-hold-preview" style="display:none;" onclick="holdGame()" role="button" tabindex="0" aria-label="ホールドと差し替え" title="タップでホールドと差し替え">
+            <canvas id="mobile-hold-piece" width="40" height="40" aria-hidden="true"></canvas>
+            <small>HOLD</small>
+          </div>
+        </div>
         <div class="mobile-next">
           <canvas id="mobile-next" width="40" height="40"></canvas>
           <small>NEXT</small>
