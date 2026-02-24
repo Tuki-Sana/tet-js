@@ -4,3 +4,4 @@ playwright-report/
 playwright/.cache/
 .env
 .env.*
+.DS_Store
