@@ -6,7 +6,7 @@ const APP_VERSION = '2.0.5';
 
 // 音量設定（0–100 で保存、0–1 で再生に使用）
 const VOLUME_KEYS = { master: 'tetrisMasterVolume', bgm: 'tetrisBgmVolume', se: 'tetrisSeVolume' };
-const VOLUME_DEFAULTS = { master: 100, bgm: 90, se: 90 };
+const VOLUME_DEFAULTS = { master: 80, bgm: 80, se: 80 };
 
 function getStoredVolume(key) {
   try {
@@ -26,33 +26,90 @@ function setStoredVolume(key, value) {
   return n;
 }
 
-function getVolumeRatio(key) {
-  return getStoredVolume(key) / 100;
+// デシベル基準の音量（スライダー 0–100% → dB → 線形ゲイン）
+const VOLUME_DB_MIN = -40;   // 0% のときの dB（ほぼ無音）
+const VOLUME_DB_MAX = 0;     // 100% のときの dB（フル）
+const VOLUME_DB_CURVE = 0.04; // 60% で十分聞こえるよう強め（60%→約-0.8dB/ch、BGM合計約-1.6dB→線形0.83）
+// システム音量60%で十分聞こえるようゲインを強め（実質50%基準で補正）
+const SYSTEM_VOLUME_COMPENSATION = 2.0;
+
+function percentToDb(percent) {
+  const p = Math.max(0, Math.min(100, percent)) / 100;
+  return VOLUME_DB_MIN + (VOLUME_DB_MAX - VOLUME_DB_MIN) * Math.pow(p, VOLUME_DB_CURVE);
 }
 
-// BGM 音源が大きいため、再生時のみ係数で減衰（スライダー90%同士で聴感バランスが取れるようにする）
-const BGM_SOURCE_SCALE = 0.45;
+function dbToLinear(dB) {
+  if (dB <= -100) return 0;
+  return Math.min(1, Math.pow(10, dB / 20));
+}
+
+function getVolumeDb(key) {
+  return percentToDb(getStoredVolume(key));
+}
+
+// ピンチBGMは音源が小さめなので再生時のみ +8dB
+const BGM_DANGER_DB = 8;
 
 function getEffectiveBgmVolume() {
-  return getVolumeRatio('master') * getVolumeRatio('bgm') * BGM_SOURCE_SCALE;
+  const db = getVolumeDb('master') + getVolumeDb('bgm');
+  return dbToLinear(db);
 }
 
-function getEffectiveSeVolume() {
-  return getVolumeRatio('master') * getVolumeRatio('se');
+function getEffectiveBgmVolumeDanger() {
+  const db = getVolumeDb('master') + getVolumeDb('bgm') + BGM_DANGER_DB;
+  return dbToLinear(db);
+}
+
+let bgmNormalGainNode = null;
+let bgmDangerGainNode = null;
+
+function initBgmGainNodes() {
+  if (bgmNormalGainNode && bgmDangerGainNode) return;
+  const ctx = initSeAudioContext();
+  const normalEl = document.getElementById('bgm-normal');
+  const dangerEl = document.getElementById('bgm-danger');
+  if (!ctx || !normalEl || !dangerEl) return;
+  try {
+    const normalSource = ctx.createMediaElementSource(normalEl);
+    const dangerSource = ctx.createMediaElementSource(dangerEl);
+    bgmNormalGainNode = ctx.createGain();
+    bgmDangerGainNode = ctx.createGain();
+    normalSource.connect(bgmNormalGainNode);
+    dangerSource.connect(bgmDangerGainNode);
+    bgmNormalGainNode.connect(ctx.destination);
+    bgmDangerGainNode.connect(ctx.destination);
+  } catch (_) {}
 }
 
 function applyBgmVolumeToElements() {
-  const v = getEffectiveBgmVolume();
   const normal = document.getElementById('bgm-normal');
   const danger = document.getElementById('bgm-danger');
-  if (normal) normal.volume = v;
-  if (danger) danger.volume = v;
+  const linearNormal = getEffectiveBgmVolume();
+  const linearDanger = getEffectiveBgmVolumeDanger();
+  const compensatedNormal = Math.min(2, linearNormal * SYSTEM_VOLUME_COMPENSATION);
+  const compensatedDanger = Math.min(2, linearDanger * SYSTEM_VOLUME_COMPENSATION);
+  initBgmGainNodes();
+  if (bgmNormalGainNode && bgmDangerGainNode) {
+    const ctx = bgmNormalGainNode.context;
+    const t = ctx.currentTime;
+    bgmNormalGainNode.gain.setValueAtTime(compensatedNormal, t);
+    bgmDangerGainNode.gain.setValueAtTime(compensatedDanger, t);
+  } else {
+    if (normal) normal.volume = linearNormal;
+    if (danger) danger.volume = linearDanger;
+  }
+}
+
+function getEffectiveSeVolume(isGameOver = false) {
+  const db = getVolumeDb('master') + getVolumeDb('se') + (isGameOver ? SE_GAMEOVER_DB : 0);
+  return dbToLinear(db);
 }
 
 // SE 聞こえやすく: ダッキング ＋ Web Audio バッファ再生（毎回新規 Source で連続再生も安定）
-const BGM_DUCK_VOLUME = 0.05;
+const BGM_DUCK_DB = -26;       // ダッキング時の BGM（約 0.05 に相当）
+const BGM_DUCK_LINEAR = Math.min(1, Math.pow(10, BGM_DUCK_DB / 20));
 const BGM_DUCK_DURATION_MS = 550;
-const SE_GAIN_BOOST = 2.5;
+const SE_GAMEOVER_DB = -6;     // ゲームオーバー音は他 SE より -6dB
 const SE_URLS = {
   'se-gameover': 'audio/iwa_gameover010.mp3',
   'se-line-few': 'audio/play.mp3',
@@ -76,8 +133,16 @@ function duckBgm() {
   if (bgmDuckTimeoutId != null) clearTimeout(bgmDuckTimeoutId);
   const normal = document.getElementById('bgm-normal');
   const danger = document.getElementById('bgm-danger');
-  if (normal) normal.volume = BGM_DUCK_VOLUME;
-  if (danger) danger.volume = BGM_DUCK_VOLUME;
+  const duckLinear = Math.min(2, BGM_DUCK_LINEAR * SYSTEM_VOLUME_COMPENSATION);
+  if (bgmNormalGainNode && bgmDangerGainNode) {
+    const ctx = bgmNormalGainNode.context;
+    const t = ctx.currentTime;
+    bgmNormalGainNode.gain.setValueAtTime(duckLinear, t);
+    bgmDangerGainNode.gain.setValueAtTime(duckLinear, t);
+  } else {
+    if (normal) normal.volume = BGM_DUCK_LINEAR;
+    if (danger) danger.volume = BGM_DUCK_LINEAR;
+  }
   bgmDuckTimeoutId = setTimeout(() => {
     bgmDuckTimeoutId = null;
     applyBgmVolumeToElements();
@@ -113,7 +178,9 @@ function playSeWithBuffer(id) {
   const source = ctx.createBufferSource();
   source.buffer = buffer;
   const gain = ctx.createGain();
-  gain.gain.setValueAtTime(SE_GAIN_BOOST * getEffectiveSeVolume(), ctx.currentTime);
+  const linear = getEffectiveSeVolume(id === 'se-gameover');
+  const compensated = Math.min(2, linear * SYSTEM_VOLUME_COMPENSATION);
+  gain.gain.setValueAtTime(compensated, ctx.currentTime);
   source.connect(gain);
   gain.connect(ctx.destination);
   source.start(0);
@@ -122,7 +189,8 @@ function playSeWithBuffer(id) {
 function fallbackSePlay(id) {
   const el = document.getElementById(id);
   if (!el) return;
-  el.volume = Math.min(1, SE_GAIN_BOOST * getEffectiveSeVolume());
+  const linear = getEffectiveSeVolume(id === 'se-gameover');
+  el.volume = Math.min(1, linear * SYSTEM_VOLUME_COMPENSATION);
   el.currentTime = 0;
   el.pause();
   el.play().catch(() => {});
@@ -193,7 +261,10 @@ function playBgmNormal() {
   const danger = document.getElementById('bgm-danger');
   if (danger) danger.pause();
   if (normal) {
-    normal.volume = getEffectiveBgmVolume();
+    applyBgmVolumeToElements();
+    if (seAudioContext && seAudioContext.state === 'suspended') {
+      seAudioContext.resume().catch(() => {});
+    }
     normal.currentTime = 0;
     normal.play().catch(() => {});
   }
@@ -205,7 +276,10 @@ function playBgmDanger() {
   const danger = document.getElementById('bgm-danger');
   if (normal) normal.pause();
   if (danger) {
-    danger.volume = getEffectiveBgmVolume();
+    applyBgmVolumeToElements();
+    if (seAudioContext && seAudioContext.state === 'suspended') {
+      seAudioContext.resume().catch(() => {});
+    }
     danger.currentTime = 0;
     danger.play().catch(() => {});
   }
@@ -237,13 +311,6 @@ function updateBgmFromBoard(board) {
 function getDropIntervalForLevel(level) {
   return Math.max(400, 2000 * Math.pow(0.85, level - 1));
 }
-
-// ゲームオーバー「画面を埋める」演出の設定
-const GAME_OVER_FILL = {
-  spawnIntervalMs: 280,
-  maxDurationMs: 4200,
-  fallSpeedPerFrame: 0.22
-};
 
 // 色パレット（海モチーフ・パステル）
 const PIECE_COLORS = [
@@ -868,7 +935,7 @@ class Tetris {
     }, this.dropInterval);
   }
 
-  // ★修正: ゲームオーバー処理（落下演出のあとモーダル表示）
+  // ゲームオーバー処理（盤面のまま即モーダル表示・クラシックテトリス風）
   handleGameOver() {
     if (!this.tutorialMode) {
       pauseAllBgm();
@@ -884,115 +951,7 @@ class Tetris {
     this.gameOver = true;
     clearInterval(this.gameLoop);
     this.gameLoop = null;
-    this.gameOverFillPile = this.board.map(row => row.slice());
-    this.gameOverFillPieces = [];
-    this.gameOverFilling = true;
-    this.gameOverFillStartTime = null;
-    this.gameOverFillLastSpawn = 0;
-    this.gameOverFillRAF = null;
-    this.startGameOverFillAnimation();
-  }
-
-  startGameOverFillAnimation() {
-    this.gameOverFillStartTime = performance.now();
-    this.gameOverFillRAF = requestAnimationFrame((t) => this.stepGameOverFill(t));
-  }
-
-  stepGameOverFill(timestamp) {
-    if (!this.gameOverFilling) return;
-    const elapsed = timestamp - this.gameOverFillStartTime;
-    if (elapsed - this.gameOverFillLastSpawn >= GAME_OVER_FILL.spawnIntervalMs) {
-      this.gameOverFillLastSpawn = elapsed;
-      const shapeIndex = Math.floor(Math.random() * Tetris.SHAPES.length);
-      const shape = Tetris.SHAPES[shapeIndex];
-      const h = shape.length;
-      const w = shape[0].length;
-      const x = Math.floor(Math.random() * Math.max(1, 11 - w));
-      const y = -h - Math.random() * 2;
-      this.gameOverFillPieces.push({ shape, colorIndex: shapeIndex, x, y });
-    }
-    const g = this.gridSize;
-    const pile = this.gameOverFillPile;
-    const stillFalling = [];
-    for (const p of this.gameOverFillPieces) {
-      p.y += GAME_OVER_FILL.fallSpeedPerFrame;
-      let landed = false;
-      for (let sy = 0; sy < p.shape.length && !landed; sy++) {
-        for (let sx = 0; sx < p.shape[0].length; sx++) {
-          if (!p.shape[sy][sx]) continue;
-          const gy = p.y + sy;
-          const gx = p.x + sx;
-          if (gy >= 20) landed = true;
-          else if (gy >= 0 && gx >= 0 && gx < 10 && pile[Math.floor(gy)][Math.floor(gx)]) landed = true;
-        }
-      }
-      if (landed) {
-        for (let sy = 0; sy < p.shape.length; sy++) {
-          for (let sx = 0; sx < p.shape[0].length; sx++) {
-            if (!p.shape[sy][sx]) continue;
-            const gy = Math.floor(p.y + sy);
-            const gx = Math.floor(p.x + sx);
-            if (gy >= 0 && gy < 20 && gx >= 0 && gx < 10) pile[gy][gx] = p.colorIndex + 1;
-          }
-        }
-      } else {
-        stillFalling.push(p);
-      }
-    }
-    this.gameOverFillPieces = stillFalling;
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    if (!this.isMobile) {
-      this.ctx.strokeStyle = '#333';
-      this.ctx.lineWidth = 1;
-      for (let i = 0; i <= 10; i++) {
-        this.ctx.beginPath();
-        this.ctx.moveTo(i * g, 0);
-        this.ctx.lineTo(i * g, this.canvas.height);
-        this.ctx.stroke();
-      }
-      for (let i = 0; i <= 20; i++) {
-        this.ctx.beginPath();
-        this.ctx.moveTo(0, i * g);
-        this.ctx.lineTo(this.canvas.width, i * g);
-        this.ctx.stroke();
-      }
-    }
-    pile.forEach((row, y) => {
-      row.forEach((value, x) => {
-        if (value) {
-          this.ctx.fillStyle = PIECE_COLORS[value - 1] || '#5dade2';
-          const w = g - 2;
-          const h = w * BLOCK_HEIGHT_RATIO;
-          this.ctx.fillRect(x * g + 1, y * g + 1, w, h);
-        }
-      });
-    });
-    this.gameOverFillPieces.forEach(p => {
-      this.ctx.fillStyle = PIECE_COLORS[p.colorIndex] || '#5dade2';
-      p.shape.forEach((row, sy) => {
-        row.forEach((cell, sx) => {
-          if (cell) {
-            const px = (p.x + sx) * g + 1;
-            const py = (p.y + sy) * g + 1;
-            const w = g - 2;
-            const h = w * BLOCK_HEIGHT_RATIO;
-            this.ctx.fillRect(px, py, w, h);
-          }
-        });
-      });
-    });
-    const topFilled = pile[0].some(c => c !== 0);
-    const timeUp = elapsed >= GAME_OVER_FILL.maxDurationMs;
-    if (topFilled || timeUp) {
-      this.gameOverFilling = false;
-      if (this.gameOverFillRAF != null) {
-        cancelAnimationFrame(this.gameOverFillRAF);
-        this.gameOverFillRAF = null;
-      }
-      this.showGameOverModal();
-      return;
-    }
-    this.gameOverFillRAF = requestAnimationFrame((t) => this.stepGameOverFill(t));
+    this.showGameOverModal();
   }
 
   showGameOverModal() {
@@ -1030,11 +989,6 @@ class Tetris {
   // ★修正: ゲームリセット（デバイス別表示リセット）
   reset() {
     clearInterval(this.gameLoop);
-    this.gameOverFilling = false;
-    if (this.gameOverFillRAF != null) {
-      cancelAnimationFrame(this.gameOverFillRAF);
-      this.gameOverFillRAF = null;
-    }
     this.board = Array(20).fill().map(() => Array(10).fill(0));
     this.score = 0;
     const config = DIFFICULTY_CONFIG[this.difficulty] || DIFFICULTY_CONFIG.normal;
@@ -1351,11 +1305,6 @@ function restartGame() {
 function quitToMenu() {
   if (tetris) {
     clearInterval(tetris.gameLoop);
-    tetris.gameOverFilling = false;
-    if (tetris.gameOverFillRAF != null) {
-      cancelAnimationFrame(tetris.gameOverFillRAF);
-      tetris.gameOverFillRAF = null;
-    }
     tetris = null;
   }
 
@@ -1497,6 +1446,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (slider) slider.value = val;
     if (valueEl) valueEl.textContent = val + '%';
   });
+  applyBgmVolumeToElements();
   document.querySelectorAll('.difficulty-option').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.difficulty-option').forEach(b => {
