@@ -756,7 +756,7 @@ class Tetris {
 
   // ピース移動
   movePiece(dx, dy) {
-    if (this.gameOver || this.paused) return false;
+    if (this.gameOver || this.paused || !this.currentPiece) return false;
     const newX = this.currentPiece.x + dx;
     const newY = this.currentPiece.y + dy;
     
@@ -770,7 +770,7 @@ class Tetris {
 
   // ピース回転（その場で時計回り90度、壁蹴りなし）
   rotatePiece() {
-    if (this.gameOver || this.paused) return;
+    if (this.gameOver || this.paused || !this.currentPiece) return;
 
     const shape = this.currentPiece.shape;
     const rotatedShape = [];
@@ -830,9 +830,10 @@ class Tetris {
     return !gameOverFlag;
   }
 
-  // 速度上昇処理（より緩やかに）
+  // 速度上昇処理（スタック数をレベルに換算して getDropIntervalForLevel() で統一）
   speedUpIfNeeded() {
-    const newInterval = Math.max(400, 2000 * Math.pow(0.9, Math.floor(this.linesStacked / 8)));
+    const stackLevel = Math.floor(this.linesStacked / 8) + 1;
+    const newInterval = getDropIntervalForLevel(stackLevel);
     if (newInterval < this.dropInterval) {
       this.dropInterval = newInterval;
       if (this.gameLoop) {
