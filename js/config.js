@@ -1,5 +1,5 @@
 /** PWA キャッシュ更新用（sw.js の CACHE_VERSION と揃える） */
-export const APP_VERSION = '2.0.6';
+export const APP_VERSION = '2.0.15';
 
 export const HIGH_SCORE_STORAGE_KEY = 'tetrisHighScore';
 

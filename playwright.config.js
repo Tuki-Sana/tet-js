@@ -7,7 +7,7 @@ module.exports = defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  reporter: process.env.CI ? [['github'], ['list']] : 'html',
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
@@ -15,7 +15,26 @@ module.exports = defineConfig({
     video: 'on-first-retry',
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'chromium',
+      testIgnore: '**/mobile/**',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'webkit',
+      testIgnore: '**/mobile/**',
+      use: { ...devices['Desktop Safari'] },
+    },
+    {
+      name: 'firefox',
+      testIgnore: '**/mobile/**',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'mobile-chrome',
+      testMatch: '**/mobile/**/*.spec.js',
+      use: { ...devices['Pixel 5'] },
+    },
   ],
   webServer: {
     command: 'npx serve . -l 3000',

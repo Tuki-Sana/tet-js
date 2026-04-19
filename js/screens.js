@@ -41,7 +41,20 @@ export function startGame() {
 
   if (canvas) {
     setTetris(new Tetris(canvas, { difficulty }));
-    getTetris().start();
+    const game = getTetris();
+    game.start();
+    /* ゲーム画面表示直後は flex 確定前にコンストラクタが走ることがあるため、レイアウト後に再計測 */
+    if (isMobile) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const t = getTetris();
+          if (t) {
+            t.handleResize();
+            t.draw();
+          }
+        });
+      });
+    }
   } else {
     console.error('Canvas not found!');
   }

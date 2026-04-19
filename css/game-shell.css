@@ -1,0 +1,391 @@
+/**
+ * game-shell.css — プレイ画面のモバイルシェル（HUD・プレイ列・HOLD・#mobile-game）
+ *
+ * 責務:
+ *   - #game-screen 内 .game-layout-mobile ツリーのレイアウトと余白トークン（--shell-*）
+ *   - 狭画面時の .game-layout-mobile の表示切替
+ *   - 三行（ヘッダー / 盤 / HOLD）の左右インセットは --shell-mobile-inline-pad で揃える
+ *
+ * 含めない（style.css / JS 側の責務）:
+ *   - env(safe-area-*): style.css の .screen のみ（このファイルでは使わない）
+ *   - テーマ色・ガラス色・--board-bg: :root / body.theme-dark（style.css）
+ *   - キャンバス像素・グリッド: adjustMobileCanvasSize 等（tetris-game.js）
+ *   - .tap-zones の幾何（style.css、ゲームと共有）
+ */
+
+:root {
+  --shell-play-column-max-w: 520px;
+  --shell-play-column-gap: 8px;
+  --shell-header-grid-gap-x: 10px;
+  --shell-header-grid-gap-y: 8px;
+  /* ヘッダー・盤エリア・HOLD で共通（行ごとに幅がズレないようにする） */
+  --shell-mobile-inline-pad: 12px;
+  --shell-game-area-pad-v: 6px;
+  --shell-game-area-pad: var(--shell-game-area-pad-v) var(--shell-mobile-inline-pad);
+  --shell-mobile-header-pad: 12px var(--shell-mobile-inline-pad) 10px;
+  --shell-hold-bar-padding: 6px var(--shell-mobile-inline-pad) 10px;
+}
+
+/* スマホ版：ヘッダー / 盤面 / HOLD の三行グリッド（PC 時は非表示） */
+.game-layout-mobile {
+  display: none;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mobile-header {
+  flex-shrink: 0;
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--glass-border);
+  padding: var(--shell-mobile-header-pad);
+  box-sizing: border-box;
+}
+
+.mobile-header-grid {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: var(--shell-header-grid-gap-y) var(--shell-header-grid-gap-x);
+  align-items: center;
+  width: 100%;
+  max-width: var(--shell-play-column-max-w);
+  margin: 0 auto;
+}
+
+.mobile-header-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px 6px;
+  min-width: 0;
+  align-items: end;
+}
+
+.mobile-header-next {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.mobile-pause-bar-btn {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 2px solid var(--primary);
+  background: rgba(61, 107, 138, 0.1);
+  color: var(--primary);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 2px 8px rgba(61, 107, 138, 0.15);
+}
+
+.mobile-pause-bar-btn:active {
+  opacity: 0.88;
+  transform: scale(0.98);
+}
+
+body.theme-dark .mobile-pause-bar-btn {
+  background: rgba(15, 30, 50, 0.85);
+  border-color: rgba(45, 212, 191, 0.55);
+  color: var(--primary);
+  box-shadow: 0 0 12px rgba(45, 212, 191, 0.15);
+}
+
+.mobile-score,
+.mobile-high,
+.mobile-level,
+.mobile-lines,
+.mobile-hold-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.mobile-hold-slot {
+  flex-shrink: 0;
+}
+
+.mobile-hold-preview {
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  padding: 2px 0;
+}
+
+.mobile-hold-preview canvas {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--board-bg, #000);
+  box-shadow: var(--shadow);
+}
+
+.mobile-hold-preview:active {
+  opacity: 0.85;
+}
+
+.mobile-score span,
+.mobile-high span,
+.mobile-level span,
+.mobile-lines span {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.mobile-score span {
+  font-size: 1.7rem;
+  color: var(--primary);
+  text-shadow: var(--score-keys-shadow);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  display: inline-block;
+}
+
+.mobile-level span {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--primary);
+  line-height: 1.15;
+  box-shadow: none;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+
+.mobile-high span,
+.mobile-lines span {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.mobile-header-next canvas {
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: var(--shadow);
+}
+
+.mobile-header small {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mobile-pause-bar-btn .pause-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-pause-bar-btn .pause-icon svg {
+  display: block;
+}
+
+/* 盤面エリア（グリッド中央行）。HOLD は .game-layout-mobile の最下行 */
+.mobile-game-area {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: var(--shell-game-area-pad);
+  overflow: hidden;
+  position: relative;
+}
+
+.mobile-play-column {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: var(--shell-play-column-max-w);
+  margin: 0 auto;
+}
+
+/* 列は stretch だが、水色背景はキャンバス幅にだけ付く（枠より横に広がらない） */
+.mobile-board-with-panels {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  align-self: center;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+  background: var(--board-bg);
+  border-radius: 10px;
+}
+
+.mobile-board-with-panels .game-area {
+  position: relative;
+  flex: 0 1 auto;
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.mobile-hold-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: var(--shell-hold-bar-padding);
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  box-shadow: var(--shadow);
+}
+
+.mobile-hold-bar-btn {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(61, 107, 138, 0.12);
+  border: 2px solid var(--primary);
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--primary);
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  font-family: 'JetBrains Mono', monospace;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-hold-bar-btn:active {
+  opacity: 0.85;
+  transform: scale(0.99);
+}
+
+.mobile-hold-bar .mobile-hold-preview {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 10px;
+  border: 2px solid var(--primary);
+  background: rgba(61, 107, 138, 0.08);
+}
+
+.mobile-hold-bar-hint {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+body.theme-dark .mobile-hold-bar {
+  background: rgba(7, 16, 32, 0.92);
+  border-color: rgba(45, 212, 191, 0.35);
+}
+
+body.theme-dark .mobile-hold-bar-btn,
+body.theme-dark .mobile-hold-bar .mobile-hold-preview {
+  background: rgba(15, 30, 50, 0.9);
+  border-color: rgba(45, 212, 191, 0.55);
+  color: var(--primary);
+}
+
+.side-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+#mobile-game {
+  aspect-ratio: 1 / 2;
+  max-width: 100%;
+  max-height: 100%;
+  border: 2px solid var(--secondary);
+  border-radius: 8px;
+  box-shadow: var(--glow-primary), var(--shadow);
+  background: transparent;
+  display: block;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .game-layout-mobile {
+    display: grid !important;
+  }
+
+  /* インライン指定の width/height（JS）を aspect-ratio が狭めないようにする */
+  #mobile-game {
+    aspect-ratio: auto;
+  }
+
+  .mobile-header small {
+    font-size: 0.75rem;
+  }
+
+  .mobile-score span,
+  .mobile-high span,
+  .mobile-level span,
+  .mobile-lines span {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 430px) and (min-height: 900px) {
+  :root {
+    --shell-mobile-header-pad: 10px var(--shell-mobile-inline-pad) 8px;
+    --shell-game-area-pad: var(--shell-game-area-pad-v) var(--shell-mobile-inline-pad);
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --shell-mobile-inline-pad: 10px;
+    --shell-mobile-header-pad: 10px var(--shell-mobile-inline-pad) 8px;
+    --shell-game-area-pad: var(--shell-game-area-pad-v) var(--shell-mobile-inline-pad);
+  }
+}
+
+@media (max-width: 768px) and (orientation: landscape) {
+  :root {
+    --shell-mobile-header-pad: 6px var(--shell-mobile-inline-pad) 6px;
+    --shell-game-area-pad: var(--shell-game-area-pad-v) var(--shell-mobile-inline-pad);
+  }
+}
+
+body.theme-dark .mobile-header {
+  background: rgba(7, 16, 32, 0.97);
+  border-bottom: 1px solid rgba(45, 212, 191, 0.35);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.7);
+}
+

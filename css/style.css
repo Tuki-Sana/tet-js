@@ -1,5 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
+/*
+ * style.css — テーマ・共通 UI・PC レイアウト・タップゾーン定義
+ * モバイルのプレイ画面シェル（HUD / ボード枠 / HOLD）は game-shell.css（style の直後に読込）
+ */
+
 /* ========== ライトテーマ（海＋砂浜） ========== */
 :root {
   --board-bg: linear-gradient(160deg, #e8f3f8 0%, #d4e8f2 100%);
@@ -113,7 +118,7 @@ body::before {
   z-index: -1;
 }
 
-/* 画面管理 */
+/* 画面管理 — safe-area はここだけ（子コンポーネントでは env を増やさない） */
 .screen {
   display: none;
   height: 100vh;
@@ -122,12 +127,11 @@ body::before {
   position: absolute;
   top: 0;
   left: 0;
-  /* PWA standalone でのノッチ・Dynamic Island 対応 */
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
   box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
 }
 
 .screen.active {
@@ -758,7 +762,9 @@ body.theme-dark .tutorial-step-indicator {
   position: relative;
 }
 
-#game, #mobile-game, #tutorial-canvas {
+/* #mobile-game の枠線は css/game-shell.css（PC は 3px のまま） */
+#game,
+#tutorial-canvas {
   border: 3px solid var(--secondary);
   border-radius: 8px;
   box-shadow: var(--glow-primary), var(--shadow);
@@ -897,129 +903,7 @@ body.theme-dark .tutorial-step-indicator {
   min-height: var(--tap-min-px);
 }
 
-/* スマホ版レイアウト */
-.game-layout-mobile {
-  display: none;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-.mobile-header {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
-  align-items: center;
-  gap: 6px 6px;
-  background: var(--glass);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--glass-border);
-  padding: 8px 12px;
-  flex-shrink: 0;
-  min-height: 65px;
-}
-
-.mobile-score, .mobile-high, .mobile-level, .mobile-lines, .mobile-next, .mobile-hold-slot {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-
-.mobile-hold-slot {
-  flex-shrink: 0;
-}
-
-.mobile-hold-preview {
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  cursor: pointer;
-  padding: 2px 0;
-}
-
-.mobile-hold-preview canvas {
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--board-bg, #000);
-  box-shadow: var(--shadow);
-}
-
-.mobile-hold-preview:active {
-  opacity: 0.85;
-}
-
-.mobile-score span, .mobile-high span, .mobile-level span, .mobile-lines span {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  color: var(--text);
-}
-
-/* スコアは主役：大きく・テーマカラー */
-.mobile-score span {
-  font-size: 1.7rem;
-  color: var(--primary);
-  text-shadow: var(--score-keys-shadow);
-  letter-spacing: -0.02em;
-  line-height: 1;
-}
-
-/* レベルはアクセントカラー */
-.mobile-level {
-  border: 1.5px solid var(--primary);
-  border-radius: 8px;
-  padding: 3px 8px;
-}
-.mobile-level span {
-  font-size: 1.05rem;
-  color: var(--primary);
-}
-
-/* 最高・LINESは脇役：小さく・ミュート */
-.mobile-high span, .mobile-lines span {
-  font-size: 0.82rem;
-  font-weight: 500;
-  color: var(--text-muted);
-}
-
-.mobile-next canvas {
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--board-bg, #000);
-  box-shadow: var(--shadow);
-}
-
-.mobile-header small {
-  font-size: 0.62rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-/* 一時停止ボタン（モバイル）※円形レイアウトのみ、色は .btn-primary に委譲 */
-.pause-btn-mobile {
-  flex-shrink: 0;
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
-  border-radius: 50%;
-  padding: 0;
-  font-size: 1.25rem;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 2px 8px rgba(61, 107, 138, 0.25);
-}
-.pause-btn-mobile .pause-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.pause-btn-mobile .pause-icon svg {
-  display: block;
-}
+/* モバイルプレイシェル（HUD・ボード枠・HOLD）は css/game-shell.css */
 
 /* スマホで文字を大きく（拡大しなくても読みやすく） */
 @media (max-width: 768px) {
@@ -1044,187 +928,6 @@ body.theme-dark .tutorial-step-indicator {
     font-size: 1rem;
     line-height: 1.4;
   }
-  .mobile-header small {
-    font-size: 0.75rem;
-  }
-  .mobile-score span,
-  .mobile-high span,
-  .mobile-level span,
-  .mobile-lines span {
-    font-size: 1.2rem;
-  }
-}
-
-/* モバイルゲームエリア：プレイ列＋タップ帯と分離した HOLD バー */
-.mobile-game-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: center;
-  padding: 5px 8px 8px;
-  overflow: hidden;
-  min-height: 0;
-  position: relative;
-}
-
-.mobile-play-column {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: center;
-  width: 100%;
-  max-width: 520px;
-  margin: 0 auto;
-  gap: 8px;
-}
-
-/* ボード＋ NEXT（右） */
-.mobile-board-with-panels {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 0;
-  flex: 1;
-  gap: 6px;
-}
-
-.mobile-board-with-panels .game-area {
-  flex: 1;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.board-side-next {
-  width: 78px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 4px 0;
-}
-
-/* 画面下：幅広 HOLD（タップ落下ゾーンより上で誤爆を減らす） */
-.mobile-hold-bar {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 52px;
-  padding: 6px 10px;
-  border-radius: 12px;
-  background: var(--glass);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow);
-}
-
-.mobile-hold-bar-btn {
-  width: 100%;
-  min-height: 48px;
-  padding: 10px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(61, 107, 138, 0.12);
-  border: 2px solid var(--primary);
-  border-radius: 10px;
-  cursor: pointer;
-  color: var(--primary);
-  font-size: 0.95rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  font-family: 'JetBrains Mono', monospace;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.mobile-hold-bar-btn:active {
-  opacity: 0.85;
-  transform: scale(0.99);
-}
-
-.mobile-hold-bar .mobile-hold-preview {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: 100%;
-  min-height: 48px;
-  padding: 4px 8px;
-  cursor: pointer;
-  border-radius: 10px;
-  border: 2px solid var(--primary);
-  background: rgba(61, 107, 138, 0.08);
-}
-
-.mobile-hold-bar-hint {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-body.theme-dark .mobile-hold-bar {
-  background: rgba(7, 16, 32, 0.92);
-  border-color: rgba(45, 212, 191, 0.35);
-}
-
-body.theme-dark .mobile-hold-bar-btn,
-body.theme-dark .mobile-hold-bar .mobile-hold-preview {
-  background: rgba(15, 30, 50, 0.9);
-  border-color: rgba(45, 212, 191, 0.55);
-  color: var(--primary);
-}
-
-/* NEXTラベル */
-.side-label {
-  font-size: 0.6rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-family: 'JetBrains Mono', monospace;
-}
-
-/* NEXT プレビュー canvas */
-.board-side-next canvas {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: transparent;
-  box-shadow: var(--shadow);
-}
-
-/* 一時停止ボタン（ゲームエリア右上オーバーレイ） */
-/* ヘッダー内停止ボタン（オーバーレイ廃止） */
-.pause-btn-header {
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  padding: 0;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  justify-self: end;
-}
-
-/* ★修正: 表示サイズは JS の adjustMobileCanvasSize() に任せ、1:2 アスペクトを維持（潰れ防止） */
-#mobile-game {
-  aspect-ratio: 1 / 2;
-  max-width: 100%;
-  max-height: 100%;
-  border: 2px solid var(--secondary);
-  border-radius: 8px;
-  box-shadow: var(--glow-primary), var(--shadow);
-  background: transparent;
-  display: block;
-  margin: 0 auto;
 }
 
 /* モーダル */
@@ -1297,14 +1000,21 @@ body.theme-dark .stage-clear-text {
 /* PWA更新案内トースト（画面上部） */
 .update-toast {
   position: fixed;
-  top: 1rem;
+  top: max(0.75rem, calc(env(safe-area-inset-top, 0px) + 0.5rem));
   left: 50%;
   transform: translateX(-50%);
   z-index: 1200;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  box-sizing: border-box;
+  width: min(420px, calc(100vw - 16px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)));
+  max-width: 100%;
+  padding: 12px 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
   border-radius: 12px;
   border: 2px solid var(--primary);
   background: var(--glass);
@@ -1319,9 +1029,13 @@ body.theme-dark .stage-clear-text {
   visibility: visible;
 }
 .update-toast-text {
+  flex: 1 1 12rem;
+  min-width: 0;
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--text);
+  text-align: center;
+  line-height: 1.35;
 }
 .update-reload-btn {
   flex-shrink: 0;
@@ -1504,6 +1218,7 @@ body.theme-dark .theme-option-btn[aria-pressed="true"] {
     position: relative;
   }
 
+  /* モバイル: 縦いっぱいに張り付け、safe-area の外側もベース色で見切れを減らす */
   #game-screen {
     height: 100vh !important;
     height: 100dvh !important;
@@ -1512,6 +1227,9 @@ body.theme-dark .theme-option-btn[aria-pressed="true"] {
     top: 0 !important;
     left: 0 !important;
     width: 100vw !important;
+    justify-content: stretch !important;
+    align-items: stretch !important;
+    background: var(--dark);
   }
 
   body.game-active {
@@ -1569,10 +1287,6 @@ body.theme-dark .theme-option-btn[aria-pressed="true"] {
     display: none;
   }
 
-  .game-layout-mobile {
-    display: flex !important;
-  }
-
   .tap-zones {
     display: block;
     --tap-side-w: 38%;
@@ -1593,58 +1307,13 @@ body.theme-dark .theme-option-btn[aria-pressed="true"] {
   }
 }
 
-/* ★修正: iPhone14 Pro Max対応 */
-@media (max-width: 430px) and (min-height: 900px) {
-  .mobile-header {
-    padding: 6px 12px;
-    min-height: 60px;
-  }
-
-  .mobile-game-area {
-    padding: 3px;
-  }
-}
-
 /* ★修正: 小画面対応 */
 @media (max-width: 480px) {
   .rule-card {
     padding: 20px;
   }
-  
-  .mobile-game-area {
-    padding: 4px; /* ★修正: さらに余白縮小 */
-  }
-
-  .mobile-header {
-    padding: 6px 12px; /* ★修正: さらにコンパクト */
-    min-height: 60px;  /* ★修正: さらに縮小 */
-  }
 
   .title-section h1 {
     font-size: 2.5rem;
   }
-}
-
-/* ★修正: 横画面対応 - 画面フル活用 */
-@media (max-width: 768px) and (orientation: landscape) {
-  .mobile-header {
-    padding: 4px 15px;  /* ★修正: 横画面でさらにコンパクト */
-    min-height: 50px;   /* ★修正: 横画面で極小 */
-  }
-
-  .mobile-game-area {
-    padding: 3px;
-  }
-}
-
-/* ダークテーマ：ヘッダーをHUDパネル風に引き締め */
-body.theme-dark .mobile-header {
-  background: rgba(7, 16, 32, 0.97);
-  border-bottom: 1px solid rgba(45, 212, 191, 0.35);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.7);
-}
-
-/* ダークテーマ：レベルバッジのグロー */
-body.theme-dark .mobile-level {
-  box-shadow: 0 0 8px rgba(45, 212, 191, 0.25);
 }

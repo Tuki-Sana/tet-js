@@ -9,6 +9,7 @@
   <title>テトリス</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/game-shell.css">
 </head>
 <body>
   <!-- スタート画面（1ページ目：ルール説明） -->
@@ -207,28 +208,36 @@
 
     <!-- スマホ版レイアウト -->
     <div class="game-layout-mobile">
-      <!-- 上部情報 -->
+      <!-- 上部：一時停止＋統計＋NEXT（ボードは中央のみで広く取る） -->
       <div class="mobile-header">
-        <div class="mobile-score">
-          <span id="mobile-score">0</span>
-          <small>スコア</small>
+        <div class="mobile-header-grid">
+          <button type="button" class="mobile-pause-bar-btn pause-btn pause-btn-mobile" onclick="pauseGame()" aria-label="一時停止" title="一時停止（Pキー）"><span class="pause-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></span></button>
+          <div class="mobile-header-stats">
+            <div class="mobile-score">
+              <span id="mobile-score">0</span>
+              <small>スコア</small>
+            </div>
+            <div class="mobile-high">
+              <span id="mobile-high-score">0</span>
+              <small>HI</small>
+            </div>
+            <div class="mobile-level">
+              <span id="mobile-level">1</span>
+              <small>Lv</small>
+            </div>
+            <div class="mobile-lines">
+              <span id="mobile-lines">0</span>
+              <small>行</small>
+            </div>
+          </div>
+          <div class="mobile-header-next" aria-label="次のピース">
+            <small class="side-label">NEXT</small>
+            <canvas id="mobile-next" width="56" height="56"></canvas>
+          </div>
         </div>
-        <div class="mobile-high">
-          <span id="mobile-high-score">0</span>
-          <small>HI</small>
-        </div>
-        <div class="mobile-level">
-          <span id="mobile-level">1</span>
-          <small>Lv</small>
-        </div>
-        <div class="mobile-lines">
-          <span id="mobile-lines">0</span>
-          <small>行</small>
-        </div>
-        <button type="button" class="btn btn-primary btn-sm pause-btn pause-btn-mobile pause-btn-header" onclick="pauseGame()" aria-label="一時停止" title="一時停止（Pキー）"><span class="pause-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></span></button>
       </div>
 
-      <!-- ゲームエリア：ボード＋NEXT、下に幅広 HOLD（タップ落下帯と分離） -->
+      <!-- 中央ボード（HOLD はグリッド最下行で safe-area と二重にならない） -->
       <div class="mobile-game-area">
         <div class="mobile-play-column">
           <div class="mobile-board-with-panels">
@@ -241,18 +250,14 @@
               </div>
               <canvas id="mobile-game" width="280" height="560"></canvas>
             </div>
-            <div class="board-side board-side-next">
-              <small class="side-label">NEXT</small>
-              <canvas id="mobile-next" width="72" height="72"></canvas>
-            </div>
           </div>
-          <div class="mobile-hold-bar">
-            <button type="button" class="mobile-hold-bar-btn" id="mobile-hold-btn" onclick="holdGame()" aria-label="ホールド" title="ホールド">HOLD</button>
-            <div class="mobile-hold-preview" id="mobile-hold-preview" style="display:none;" onclick="holdGame()" role="button" tabindex="0" aria-label="ホールドと差し替え" title="タップでホールドと差し替え">
-              <canvas id="mobile-hold-piece" width="48" height="48" aria-hidden="true"></canvas>
-              <span class="mobile-hold-bar-hint">タップで差し替え</span>
-            </div>
-          </div>
+        </div>
+      </div>
+      <div class="mobile-hold-bar">
+        <button type="button" class="mobile-hold-bar-btn" id="mobile-hold-btn" onclick="holdGame()" aria-label="ホールド" title="ホールド">HOLD</button>
+        <div class="mobile-hold-preview" id="mobile-hold-preview" style="display:none;" onclick="holdGame()" role="button" tabindex="0" aria-label="ホールドと差し替え" title="タップでホールドと差し替え">
+          <canvas id="mobile-hold-piece" width="48" height="48" aria-hidden="true"></canvas>
+          <span class="mobile-hold-bar-hint">タップで差し替え</span>
         </div>
       </div>
     </div>

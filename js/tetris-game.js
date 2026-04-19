@@ -100,37 +100,78 @@ export class Tetris {
     }
   }
 
-  // ★追加: モバイルキャンバスサイズ調整メソッド（iPhone 検索バー考慮で visualViewport 使用）
+  // モバイル: 実際に割り当てられたボード枠（.mobile-board-with-panels）に合わせて 1:2 で収める
   adjustMobileCanvasSize() {
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+    if (!this.isMobile || !this.canvas || this.canvas.id !== 'mobile-game') return;
 
-    const headerEl = document.querySelector('.game-layout-mobile .mobile-header');
-    const holdBarEl = document.querySelector('.mobile-hold-bar');
-    let headerH = headerEl ? headerEl.getBoundingClientRect().height : 68;
-    let holdH = holdBarEl ? holdBarEl.getBoundingClientRect().height : 56;
-    if (headerH < 20) headerH = 68;
-    if (holdH < 20) holdH = 56;
-    const overheadY = headerH + holdH + 32;
-    const nextReserve = 96;
-    const maxWidth = Math.min(380, viewportWidth - nextReserve);
-    const maxHeight = Math.min(580, viewportHeight - overheadY);
-    
-    // アスペクト比を維持（10:20の比率）
     const aspectRatio = 10 / 20;
-    let finalWidth = maxWidth;
-    let finalHeight = maxWidth / aspectRatio;
-    
-    if (finalHeight > maxHeight) {
-      finalHeight = maxHeight;
-      finalWidth = finalHeight * aspectRatio;
+    /* パネル内の計測余白（#mobile-game の border 2px×2 ＋僅少） */
+    const borderPad = 2;
+    const panel = document.querySelector('.game-layout-mobile .mobile-board-with-panels');
+    const viewportWidth = window.innerWidth;
+
+    let maxWidth;
+    let maxHeight;
+
+    if (panel) {
+      const pr = panel.getBoundingClientRect();
+      maxWidth = Math.max(80, Math.floor(pr.width - borderPad));
+      maxHeight = Math.max(80, Math.floor(pr.height - borderPad));
     }
-    
-    // ★重要: キャンバス要素のサイズ設定
-    this.canvas.width = Math.floor(finalWidth);
-    this.canvas.height = Math.floor(finalHeight);
-    this.canvas.style.width = Math.floor(finalWidth) + 'px';
-    this.canvas.style.height = Math.floor(finalHeight) + 'px';
+
+    /* 初回フレームなど枠がまだ取れないときのフォールバック */
+    if (!panel || maxHeight < 60 || maxWidth < 60) {
+      const viewportHeight =
+        (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+      const headerEl = document.querySelector('.game-layout-mobile .mobile-header');
+      const holdBarEl = document.querySelector('.mobile-hold-bar');
+      const areaEl = document.querySelector('.mobile-game-area');
+      let extra = 32;
+      if (areaEl) {
+        const cs = getComputedStyle(areaEl);
+        extra +=
+          (parseFloat(cs.paddingTop) || 0) +
+          (parseFloat(cs.paddingBottom) || 0) +
+          6;
+      }
+      let headerH = headerEl ? headerEl.getBoundingClientRect().height : 76;
+      let holdH = holdBarEl ? holdBarEl.getBoundingClientRect().height : 72;
+      if (headerH < 24) headerH = 76;
+      if (holdH < 24) holdH = 72;
+      const overheadY = headerH + holdH + extra;
+      const nextReserve = 16;
+      maxWidth = Math.min(520, Math.max(80, viewportWidth - nextReserve));
+      maxHeight = Math.max(120, Math.min(720, viewportHeight - overheadY));
+    }
+
+    /* 幅優先・高さ優先で floor した二通りのうち、ピクセル面積が大きい方を採用（余白を 1px 単位で減らす） */
+    const fitFromWidth = (mw, mh) => {
+      let w = Math.floor(mw);
+      let h = Math.floor(w / aspectRatio);
+      if (h > mh) {
+        h = Math.floor(mh);
+        w = Math.floor(h * aspectRatio);
+      }
+      return { w, h, area: w * h };
+    };
+    const fitFromHeight = (mw, mh) => {
+      let h = Math.floor(mh);
+      let w = Math.floor(h * aspectRatio);
+      if (w > mw) {
+        w = Math.floor(mw);
+        h = Math.floor(w / aspectRatio);
+      }
+      return { w, h, area: w * h };
+    };
+    const fromW = fitFromWidth(maxWidth, maxHeight);
+    const fromH = fitFromHeight(maxWidth, maxHeight);
+    const best = fromH.area > fromW.area ? fromH : fromW;
+    const fw = best.w;
+    const fh = best.h;
+    this.canvas.width = fw;
+    this.canvas.height = fh;
+    this.canvas.style.width = fw + 'px';
+    this.canvas.style.height = fh + 'px';
   }
 
   // テトラミノの形状定義

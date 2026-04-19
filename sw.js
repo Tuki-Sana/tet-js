@@ -1,10 +1,11 @@
 // js/config.js の APP_VERSION と揃えてデプロイごとにインクリメント
-const CACHE_VERSION = '2.0.6';
+const CACHE_VERSION = '2.0.15';
 const CACHE_NAME = 'tet-js-v' + CACHE_VERSION;
 const ASSETS = [
   './',
   './index.html',
   './css/style.css',
+  './css/game-shell.css',
   './js/app.js',
   './js/config.js',
   './js/audio.js',
