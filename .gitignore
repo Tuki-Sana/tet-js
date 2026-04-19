@@ -8,3 +8,5 @@ playwright/.cache/
 index_backup.html
 PROJECT_DESCRIPTION.*
 PROJECT_OVERVIEW.*
+
+.vscode/

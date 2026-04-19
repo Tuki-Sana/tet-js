@@ -1,11 +1,20 @@
-// tetris.js の APP_VERSION と揃えてデプロイごとにインクリメント
-const CACHE_VERSION = '2.0.5';
+// js/config.js の APP_VERSION と揃えてデプロイごとにインクリメント
+const CACHE_VERSION = '2.0.6';
 const CACHE_NAME = 'tet-js-v' + CACHE_VERSION;
 const ASSETS = [
   './',
   './index.html',
   './css/style.css',
-  './js/tetris.js',
+  './js/app.js',
+  './js/config.js',
+  './js/audio.js',
+  './js/score.js',
+  './js/game-session.js',
+  './js/input.js',
+  './js/tetris-game.js',
+  './js/screens.js',
+  './js/tutorial.js',
+  './js/theme-settings.js',
   './manifest.json',
   './audio/bgm_normal.mp3',
   './audio/bgm_danger.mp3',
