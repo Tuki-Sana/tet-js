@@ -1055,19 +1055,33 @@ body.theme-dark .tutorial-step-indicator {
   }
 }
 
-/* ★修正: モバイルゲームエリア - 余白最小化、一時停止オーバーレイ用に position: relative */
+/* モバイルゲームエリア：プレイ列＋タップ帯と分離した HOLD バー */
 .mobile-game-area {
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: stretch;
   justify-content: center;
-  padding: 5px 2px;
+  padding: 5px 8px 8px;
   overflow: hidden;
   min-height: 0;
   position: relative;
 }
 
-/* ボード＋サイドパネルの横並びラッパー */
+.mobile-play-column {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  gap: 8px;
+}
+
+/* ボード＋ NEXT（右） */
 .mobile-board-with-panels {
   display: flex;
   flex-direction: row;
@@ -1075,11 +1089,18 @@ body.theme-dark .tutorial-step-indicator {
   justify-content: center;
   width: 100%;
   min-height: 0;
+  flex: 1;
+  gap: 6px;
 }
 
-/* 左右サイドパネル共通 */
-.board-side {
-  width: 50px;
+.mobile-board-with-panels .game-area {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.board-side-next {
+  width: 78px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -1089,29 +1110,75 @@ body.theme-dark .tutorial-step-indicator {
   padding: 4px 0;
 }
 
-/* HOLDボタン（サイドパネル版） */
-.hold-side-btn {
-  width: 44px;
-  height: 44px;
+/* 画面下：幅広 HOLD（タップ落下ゾーンより上で誤爆を減らす） */
+.mobile-hold-bar {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 52px;
+  padding: 6px 10px;
+  border-radius: 12px;
   background: var(--glass);
-  border: 1.5px solid var(--primary);
-  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow);
+}
+
+.mobile-hold-bar-btn {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(61, 107, 138, 0.12);
+  border: 2px solid var(--primary);
+  border-radius: 10px;
   cursor: pointer;
   color: var(--primary);
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
   font-family: 'JetBrains Mono', monospace;
   -webkit-tap-highlight-color: transparent;
 }
-.hold-side-btn:active {
-  opacity: 0.75;
+
+.mobile-hold-bar-btn:active {
+  opacity: 0.85;
+  transform: scale(0.99);
 }
-body.theme-dark .hold-side-btn {
-  box-shadow: 0 0 8px rgba(45, 212, 191, 0.2);
+
+.mobile-hold-bar .mobile-hold-preview {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 10px;
+  border: 2px solid var(--primary);
+  background: rgba(61, 107, 138, 0.08);
+}
+
+.mobile-hold-bar-hint {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+body.theme-dark .mobile-hold-bar {
+  background: rgba(7, 16, 32, 0.92);
+  border-color: rgba(45, 212, 191, 0.35);
+}
+
+body.theme-dark .mobile-hold-bar-btn,
+body.theme-dark .mobile-hold-bar .mobile-hold-preview {
+  background: rgba(15, 30, 50, 0.9);
+  border-color: rgba(45, 212, 191, 0.55);
+  color: var(--primary);
 }
 
 /* NEXTラベル */
@@ -1124,11 +1191,12 @@ body.theme-dark .hold-side-btn {
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* サイドパネルのcanvas */
-.board-side canvas {
+/* NEXT プレビュー canvas */
+.board-side-next canvas {
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   background: transparent;
+  box-shadow: var(--shadow);
 }
 
 /* 一時停止ボタン（ゲームエリア右上オーバーレイ） */

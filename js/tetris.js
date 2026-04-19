@@ -355,6 +355,50 @@ function performZoneAction(tetris, action) {
   }
 }
 
+/** タップゾーン左右幅（css .tap-zones --tap-side-w のモバイル値と一致） */
+const MOBILE_TAP_SIDE_FRAC = 0.38;
+let mobileSwipeHardDropTrack = null;
+
+/** プレイエリア中央帯の下方向スワイプで一気落下（1回だけリスナー登録） */
+function attachMobileSwipeHardDropOnce() {
+  const gameArea = document.querySelector('.game-layout-mobile .game-area');
+  if (!gameArea || gameArea.dataset.hardDropSwipe === '1') return;
+  gameArea.dataset.hardDropSwipe = '1';
+
+  gameArea.addEventListener('touchstart', (e) => {
+    if (!document.body.classList.contains('game-active') || !tetris || tetris.gameOver || tetris.paused) return;
+    const t = e.touches[0];
+    if (!t) return;
+    const rect = gameArea.getBoundingClientRect();
+    const rx = (t.clientX - rect.left) / rect.width;
+    if (rx < MOBILE_TAP_SIDE_FRAC || rx > 1 - MOBILE_TAP_SIDE_FRAC) {
+      mobileSwipeHardDropTrack = null;
+      return;
+    }
+    mobileSwipeHardDropTrack = { x0: t.clientX, y0: t.clientY, id: t.identifier };
+  }, { passive: true, capture: true });
+
+  gameArea.addEventListener('touchcancel', () => { mobileSwipeHardDropTrack = null; }, { passive: true, capture: true });
+
+  gameArea.addEventListener('touchend', (e) => {
+    if (!mobileSwipeHardDropTrack) return;
+    const t = [...e.changedTouches].find((x) => x.identifier === mobileSwipeHardDropTrack.id);
+    if (!t) {
+      mobileSwipeHardDropTrack = null;
+      return;
+    }
+    const dx = t.clientX - mobileSwipeHardDropTrack.x0;
+    const dy = t.clientY - mobileSwipeHardDropTrack.y0;
+    mobileSwipeHardDropTrack = null;
+    if (!document.body.classList.contains('game-active') || !tetris || tetris.gameOver || tetris.paused) return;
+    if (dy < 52) return;
+    if (dy < Math.abs(dx) * 1.15) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    tetris.hardDrop();
+  }, { passive: false, capture: true });
+}
+
 // 落下ゾーン長押しリピートの設定（初回即実行→遅延後に 80ms 間隔）
 const DOWN_REPEAT_DELAY_MS = 150;
 const DOWN_REPEAT_INTERVAL_MS = 80;
@@ -446,8 +490,16 @@ class Tetris {
     const viewportWidth = window.innerWidth;
     const viewportHeight = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
 
-    const maxWidth = Math.min(380, viewportWidth - 6);
-    const maxHeight = Math.min(580, viewportHeight - 70);
+    const headerEl = document.querySelector('.game-layout-mobile .mobile-header');
+    const holdBarEl = document.querySelector('.mobile-hold-bar');
+    let headerH = headerEl ? headerEl.getBoundingClientRect().height : 68;
+    let holdH = holdBarEl ? holdBarEl.getBoundingClientRect().height : 56;
+    if (headerH < 20) headerH = 68;
+    if (holdH < 20) holdH = 56;
+    const overheadY = headerH + holdH + 32;
+    const nextReserve = 96;
+    const maxWidth = Math.min(380, viewportWidth - nextReserve);
+    const maxHeight = Math.min(580, viewportHeight - overheadY);
     
     // アスペクト比を維持（10:20の比率）
     const aspectRatio = 10 / 20;
@@ -464,8 +516,6 @@ class Tetris {
     this.canvas.height = Math.floor(finalHeight);
     this.canvas.style.width = Math.floor(finalWidth) + 'px';
     this.canvas.style.height = Math.floor(finalHeight) + 'px';
-    
-    console.log(`Mobile canvas adjusted: ${this.canvas.width}×${this.canvas.height}`);
   }
 
   // テトラミノの形状定義
@@ -483,6 +533,7 @@ class Tetris {
   setupControls() {
     if (this.isMobile) {
       this.setupMobileControls();
+      attachMobileSwipeHardDropOnce();
     } else {
       this.setupKeyboardControls();
     }
@@ -563,8 +614,16 @@ class Tetris {
       }
       
       if (this.paused) return;
-      
-      switch(e.key.toLowerCase()) {
+
+      if (e.code === 'Space' || e.key === ' ') {
+        if (!e.repeat) {
+          e.preventDefault();
+          this.hardDrop();
+        }
+        return;
+      }
+
+      switch (e.key.toLowerCase()) {
         case 'a': this.movePiece(-1, 0); break;
         case 'd': this.movePiece(1, 0); break;
         case 's': this.movePiece(0, 1); break;
@@ -592,8 +651,11 @@ class Tetris {
         const shapeIndex = this.nextPieces[0];
         const shape = Tetris.SHAPES[shapeIndex];
         const color = PIECE_COLORS[shapeIndex];
-        const size = 8;
-        
+        const cw = this.nextCanvas.width;
+        const ch = this.nextCanvas.height;
+        let size = Math.floor(Math.min(cw / shape[0].length, ch / shape.length)) - 1;
+        size = Math.max(6, Math.min(size, 18));
+
         const offsetX = (this.nextCanvas.width - shape[0].length * size) / 2;
         const offsetY = (this.nextCanvas.height - shape.length * size) / 2;
         
@@ -711,7 +773,11 @@ class Tetris {
     if (this.holdIndex === null) return;
     const shape = Tetris.SHAPES[this.holdIndex];
     const color = PIECE_COLORS[this.holdIndex];
-    const size = this.isMobile ? 10 : 12;
+    const bw = shape[0].length;
+    const bh = shape.length;
+    let size = this.isMobile
+      ? Math.max(6, Math.min(Math.floor(Math.min(canvas.width / bw, canvas.height / bh)) - 1, 16))
+      : 12;
     const offsetX = (canvas.width - shape[0].length * size) / 2;
     const offsetY = (canvas.height - shape.length * size) / 2;
     this.holdContext.fillStyle = color;
@@ -766,6 +832,19 @@ class Tetris {
       return true;
     }
     return false;
+  }
+
+  /** 現在ミノをゴースト位置まで落とし、即ロック（キー Space / スマホ中央下スワイプ） */
+  hardDrop() {
+    if (this.gameOver || this.paused || !this.currentPiece) return;
+    this.currentPiece.y = this.getGhostY();
+    const lockResult = this.lockPiece();
+    if (!lockResult) {
+      this.handleGameOver();
+      return;
+    }
+    this.draw();
+    if (!this.tutorialMode) updateBgmFromBoard(this.board);
   }
 
   // ピース回転（その場で時計回り90度、壁蹴りなし）
@@ -1424,10 +1503,8 @@ function startGame() {
   let canvas;
   if (isMobile) {
     canvas = document.getElementById('mobile-game');
-    console.log('Mobile game canvas selected:', canvas);
   } else {
     canvas = document.getElementById('game');
-    console.log('PC game canvas selected:', canvas);
   }
   
   const selected = document.querySelector('.difficulty-option.active');
@@ -1436,7 +1513,6 @@ function startGame() {
   if (canvas) {
     tetris = new Tetris(canvas, { difficulty });
     tetris.start();
-    console.log('Game started successfully');
   } else {
     console.error('Canvas not found!');
   }
@@ -1649,7 +1725,6 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .catch(() => {});
   }
-  console.log('Mobile device detected:', isMobileDevice());
 });
 
 // ★修正: 画面回転対応強化

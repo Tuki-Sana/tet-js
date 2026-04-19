@@ -53,9 +53,15 @@
               </span>
             </div>
             <div class="control-item">
+              <span class="control-desc">一気落下</span>
+              <span class="control-keys">
+                <span class="key">Space</span> / 中央を下へスワイプ
+              </span>
+            </div>
+            <div class="control-item">
               <span class="control-desc">ホールド</span>
               <span class="control-keys">
-                <span class="key">C</span>
+                <span class="key">C</span> / 画面下の HOLD
               </span>
             </div>
             <div class="control-item">
@@ -209,46 +215,43 @@
         </div>
         <div class="mobile-high">
           <span id="mobile-high-score">0</span>
-          <small>最高</small>
+          <small>HI</small>
         </div>
         <div class="mobile-level">
           <span id="mobile-level">1</span>
-          <small>レベル</small>
+          <small>Lv</small>
         </div>
         <div class="mobile-lines">
           <span id="mobile-lines">0</span>
-          <small>LINES</small>
+          <small>行</small>
         </div>
         <button type="button" class="btn btn-primary btn-sm pause-btn pause-btn-mobile pause-btn-header" onclick="pauseGame()" aria-label="一時停止" title="一時停止（Pキー）"><span class="pause-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></span></button>
       </div>
 
-      <!-- ゲームエリア（ボード左右にHOLD/NEXT） -->
+      <!-- ゲームエリア：ボード＋NEXT、下に幅広 HOLD（タップ落下帯と分離） -->
       <div class="mobile-game-area">
-        <div class="mobile-board-with-panels">
-          <!-- 左サイド：HOLD -->
-          <div class="board-side board-side-left">
-            <button type="button" class="hold-side-btn" id="mobile-hold-btn" onclick="holdGame()" aria-label="ホールド" title="ホールド">HOLD</button>
+        <div class="mobile-play-column">
+          <div class="mobile-board-with-panels">
+            <div class="game-area">
+              <div id="mobile-tap-zones" class="tap-zones">
+                <div class="tap-zone tap-rotate" data-action="rotate"></div>
+                <div class="tap-zone tap-left" data-action="left"></div>
+                <div class="tap-zone tap-right" data-action="right"></div>
+                <div class="tap-zone tap-down" data-action="down"></div>
+              </div>
+              <canvas id="mobile-game" width="280" height="560"></canvas>
+            </div>
+            <div class="board-side board-side-next">
+              <small class="side-label">NEXT</small>
+              <canvas id="mobile-next" width="72" height="72"></canvas>
+            </div>
+          </div>
+          <div class="mobile-hold-bar">
+            <button type="button" class="mobile-hold-bar-btn" id="mobile-hold-btn" onclick="holdGame()" aria-label="ホールド" title="ホールド">HOLD</button>
             <div class="mobile-hold-preview" id="mobile-hold-preview" style="display:none;" onclick="holdGame()" role="button" tabindex="0" aria-label="ホールドと差し替え" title="タップでホールドと差し替え">
-              <canvas id="mobile-hold-piece" width="40" height="40" aria-hidden="true"></canvas>
-              <small>HOLD</small>
+              <canvas id="mobile-hold-piece" width="48" height="48" aria-hidden="true"></canvas>
+              <span class="mobile-hold-bar-hint">タップで差し替え</span>
             </div>
-          </div>
-
-          <!-- 中央：ゲームボード -->
-          <div class="game-area">
-            <div id="mobile-tap-zones" class="tap-zones">
-              <div class="tap-zone tap-rotate" data-action="rotate"></div>
-              <div class="tap-zone tap-left" data-action="left"></div>
-              <div class="tap-zone tap-right" data-action="right"></div>
-              <div class="tap-zone tap-down" data-action="down"></div>
-            </div>
-            <canvas id="mobile-game" width="280" height="560"></canvas>
-          </div>
-
-          <!-- 右サイド：NEXT -->
-          <div class="board-side board-side-right">
-            <small class="side-label">NEXT</small>
-            <canvas id="mobile-next" width="40" height="40"></canvas>
           </div>
         </div>
       </div>
