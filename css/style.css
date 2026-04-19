@@ -2,7 +2,8 @@
 
 /* ========== ライトテーマ（海＋砂浜） ========== */
 :root {
-  --board-bg: linear-gradient(160deg, #f5f0e8 0%, #ebe0cc 100%);
+  --board-bg: linear-gradient(160deg, #e8f3f8 0%, #d4e8f2 100%);
+  --score-keys-shadow: none;
   --primary: #5AB2FF;
   --primary-hover: #3d9ae8;
   --secondary: #A0DEFF;
@@ -29,7 +30,6 @@
   --bg-gradient-3: rgba(232, 220, 200, 0.25);
   --bg-gradient-4: rgba(201, 168, 108, 0.12);
   --modal-overlay: rgba(44, 62, 80, 0.55);
-  --score-keys-shadow: none;
   --demo-rotate: rgba(90, 178, 255, 0.2);
   --demo-lr: rgba(160, 222, 255, 0.25);
   --demo-down: rgba(201, 168, 108, 0.2);
@@ -61,7 +61,7 @@ body.theme-dark {
   --bg-gradient-2: rgba(100, 116, 139, 0.1);
   --bg-gradient-3: rgba(45, 212, 191, 0.05);
   --bg-gradient-4: rgba(100, 116, 139, 0.06);
-  --score-keys-shadow: 0 0 12px rgba(45, 212, 191, 0.25);
+  --score-keys-shadow: 0 0 14px rgba(45, 212, 191, 0.6), 0 0 28px rgba(45, 212, 191, 0.2);
   --demo-rotate: rgba(45, 212, 191, 0.35);
   --demo-lr: rgba(93, 173, 226, 0.35);
   --demo-down: rgba(110, 231, 183, 0.35);
@@ -943,7 +943,7 @@ body.theme-dark .tutorial-step-indicator {
 .mobile-hold-preview canvas {
   border: 1px solid var(--border);
   border-radius: 4px;
-  background: #000;
+  background: var(--board-bg, #000);
   box-shadow: var(--shadow);
 }
 
@@ -953,22 +953,49 @@ body.theme-dark .tutorial-step-indicator {
 
 .mobile-score span, .mobile-high span, .mobile-level span, .mobile-lines span {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 1.1rem;
   font-weight: 700;
   color: var(--text);
+}
+
+/* スコアは主役：大きく・テーマカラー */
+.mobile-score span {
+  font-size: 1.7rem;
+  color: var(--primary);
   text-shadow: var(--score-keys-shadow);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+/* レベルはアクセントカラー */
+.mobile-level {
+  border: 1.5px solid var(--primary);
+  border-radius: 8px;
+  padding: 3px 8px;
+}
+.mobile-level span {
+  font-size: 1.05rem;
+  color: var(--primary);
+}
+
+/* 最高・LINESは脇役：小さく・ミュート */
+.mobile-high span, .mobile-lines span {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-muted);
 }
 
 .mobile-next canvas {
   border: 1px solid var(--border);
   border-radius: 4px;
-  background: #000;
+  background: var(--board-bg, #000);
   box-shadow: var(--shadow);
 }
 
 .mobile-header small {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 /* 一時停止ボタン（モバイル）※円形レイアウトのみ、色は .btn-primary に委譲 */
@@ -1034,12 +1061,75 @@ body.theme-dark .tutorial-step-indicator {
 .mobile-game-area {
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  padding: 5px; /* ★修正: 余白最小化 */
+  padding: 5px 2px;
   overflow: hidden;
   min-height: 0;
   position: relative;
+}
+
+/* ボード＋サイドパネルの横並びラッパー */
+.mobile-board-with-panels {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+}
+
+/* 左右サイドパネル共通 */
+.board-side {
+  width: 50px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-top: 10px;
+}
+
+/* HOLDボタン（サイドパネル版） */
+.hold-side-btn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--glass);
+  border: 1.5px solid var(--primary);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--primary);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  font-family: 'JetBrains Mono', monospace;
+  -webkit-tap-highlight-color: transparent;
+}
+.hold-side-btn:active {
+  opacity: 0.75;
+}
+body.theme-dark .hold-side-btn {
+  box-shadow: 0 0 8px rgba(45, 212, 191, 0.2);
+}
+
+/* NEXTラベル */
+.side-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* サイドパネルのcanvas */
+.board-side canvas {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
 }
 
 /* 一時停止ボタン（ゲームエリア右上オーバーレイ） */
@@ -1058,7 +1148,7 @@ body.theme-dark .tutorial-step-indicator {
   border: 2px solid var(--secondary);
   border-radius: 8px;
   box-shadow: var(--glow-primary), var(--shadow);
-  background: #000;
+  background: transparent;
   display: block;
   margin: 0 auto;
 }
@@ -1471,4 +1561,16 @@ body.theme-dark .theme-option-btn[aria-pressed="true"] {
   .mobile-game-area {
     padding: 3px;
   }
+}
+
+/* ダークテーマ：ヘッダーをHUDパネル風に引き締め */
+body.theme-dark .mobile-header {
+  background: rgba(7, 16, 32, 0.97);
+  border-bottom: 1px solid rgba(45, 212, 191, 0.35);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.7);
+}
+
+/* ダークテーマ：レベルバッジのグロー */
+body.theme-dark .mobile-level {
+  box-shadow: 0 0 8px rgba(45, 212, 191, 0.25);
 }

@@ -219,30 +219,37 @@
           <span id="mobile-lines">0</span>
           <small>LINES</small>
         </div>
-        <div class="mobile-hold-slot">
-          <button type="button" class="btn btn-sm hold-btn-mobile" id="mobile-hold-btn" onclick="holdGame()" aria-label="ホールド" title="ホールド">HOLD</button>
-          <div class="mobile-hold-preview" id="mobile-hold-preview" style="display:none;" onclick="holdGame()" role="button" tabindex="0" aria-label="ホールドと差し替え" title="タップでホールドと差し替え">
-            <canvas id="mobile-hold-piece" width="40" height="40" aria-hidden="true"></canvas>
-            <small>HOLD</small>
-          </div>
-        </div>
-        <div class="mobile-next">
-          <canvas id="mobile-next" width="40" height="40"></canvas>
-          <small>NEXT</small>
-        </div>
       </div>
 
-      <!-- ゲームエリア（一時停止は右上オーバーレイ） -->
+      <!-- ゲームエリア（ボード左右にHOLD/NEXT） -->
       <div class="mobile-game-area">
         <button type="button" class="btn btn-primary btn-sm pause-btn pause-btn-mobile pause-btn-overlay" onclick="pauseGame()" aria-label="一時停止" title="一時停止"><span class="pause-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></span></button>
-        <div class="game-area">
-          <div id="mobile-tap-zones" class="tap-zones">
-            <div class="tap-zone tap-rotate" data-action="rotate"></div>
-            <div class="tap-zone tap-left" data-action="left"></div>
-            <div class="tap-zone tap-right" data-action="right"></div>
-            <div class="tap-zone tap-down" data-action="down"></div>
+        <div class="mobile-board-with-panels">
+          <!-- 左サイド：HOLD -->
+          <div class="board-side board-side-left">
+            <button type="button" class="hold-side-btn" id="mobile-hold-btn" onclick="holdGame()" aria-label="ホールド" title="ホールド">HOLD</button>
+            <div class="mobile-hold-preview" id="mobile-hold-preview" style="display:none;" onclick="holdGame()" role="button" tabindex="0" aria-label="ホールドと差し替え" title="タップでホールドと差し替え">
+              <canvas id="mobile-hold-piece" width="40" height="40" aria-hidden="true"></canvas>
+              <small>HOLD</small>
+            </div>
           </div>
-          <canvas id="mobile-game" width="280" height="560"></canvas>
+
+          <!-- 中央：ゲームボード -->
+          <div class="game-area">
+            <div id="mobile-tap-zones" class="tap-zones">
+              <div class="tap-zone tap-rotate" data-action="rotate"></div>
+              <div class="tap-zone tap-left" data-action="left"></div>
+              <div class="tap-zone tap-right" data-action="right"></div>
+              <div class="tap-zone tap-down" data-action="down"></div>
+            </div>
+            <canvas id="mobile-game" width="280" height="560"></canvas>
+          </div>
+
+          <!-- 右サイド：NEXT -->
+          <div class="board-side board-side-right">
+            <small class="side-label">NEXT</small>
+            <canvas id="mobile-next" width="40" height="40"></canvas>
+          </div>
         </div>
       </div>
     </div>

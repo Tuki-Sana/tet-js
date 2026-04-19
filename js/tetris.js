@@ -314,13 +314,13 @@ function getDropIntervalForLevel(level) {
 
 // 色パレット（海モチーフ・パステル）
 const PIECE_COLORS = [
-  '#a8d8ea', // I型 - 空・スカイブルー
-  '#c4b5fd', // T型 - ラベンダー
-  '#7dd3c0', // L型 - 浅い海・ペールティール
-  '#5dade2', // J型 - 海・アクア
-  '#ffd6a5', // O型 - 砂・ペールピーチ
-  '#b5ead7', // S型 - 波・ミント
-  '#f8b4c4'  // Z型 - 朝焼け・ソフトピンク
+  '#7bcce5', // I型 - スカイブルー
+  '#b8a8f8', // T型 - ラベンダー
+  '#5dc0aa', // L型 - ティール
+  '#4aaad8', // J型 - オーシャンブルー
+  '#f7c47a', // O型 - サンドピーチ
+  '#7ad8bc', // S型 - ミント
+  '#f59abe'  // Z型 - ソフトピンク
 ];
 
 // デバイス判定関数
@@ -988,16 +988,16 @@ class Tetris {
         this.ctx.stroke();
       });
     } else {
-      // 砂浜：暖かみのあるベージュグラデーション
+      // 海面：薄い青みがかったグラデーション（全ピース色と対比が取れる）
       const bg = this.ctx.createLinearGradient(0, 0, W, H);
-      bg.addColorStop(0, '#f5f0e8');
-      bg.addColorStop(1, '#ebe0cc');
+      bg.addColorStop(0, '#e8f3f8');
+      bg.addColorStop(1, '#d4e8f2');
       this.ctx.fillStyle = bg;
       this.ctx.fillRect(0, 0, W, H);
 
-      // 浜辺の陽光スポット（上部から柔らかく）
-      const spot = this.ctx.createRadialGradient(W * 0.5, 0, 0, W * 0.5, 0, H * 0.6);
-      spot.addColorStop(0, 'rgba(255, 255, 255, 0.18)');
+      // 上部の光スポット（水面の反射）
+      const spot = this.ctx.createRadialGradient(W * 0.5, 0, 0, W * 0.5, 0, H * 0.55);
+      spot.addColorStop(0, 'rgba(255, 255, 255, 0.22)');
       spot.addColorStop(1, 'rgba(255, 255, 255, 0)');
       this.ctx.fillStyle = spot;
       this.ctx.fillRect(0, 0, W, H);
