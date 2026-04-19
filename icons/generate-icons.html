@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <title>PWA アイコン生成</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    canvas { display: block; margin: 10px 0; border: 1px solid #ccc; }
-    button { margin-right: 8px; padding: 8px 16px; cursor: pointer; }
+    body { font-family: sans-serif; padding: 20px; background: #1a1a2e; color: #eee; }
+    canvas { display: block; margin: 10px 0; border: 1px solid #334; image-rendering: pixelated; }
+    button { margin-right: 8px; padding: 8px 16px; cursor: pointer; background: #2dd4bf; border: none; border-radius: 6px; color: #0f172a; font-weight: bold; }
   </style>
 </head>
 <body>
   <h1>PWA アイコン生成</h1>
-  <p>下のキャンバスを 192px / 512px の PNG として保存できます。icons フォルダに icon-192.png / icon-512.png として保存してください。</p>
+  <p>icons フォルダに icon-192.png / icon-512.png として保存してください。</p>
   <canvas id="c" width="512" height="512"></canvas>
   <div>
     <button id="b192">192px を保存</button>
@@ -20,31 +20,211 @@
   <script>
     const c = document.getElementById('c');
     const ctx = c.getContext('2d');
-    const size = 512;
-    const pad = size * 0.15;
-    const block = (size - pad * 2) / 5;
-    const gap = block * 0.12;
+    const SIZE = 512;
 
-    ctx.fillStyle = '#f5f0e8';
-    ctx.fillRect(0, 0, size, size);
+    // ゲームの実際のピース配色（やや鮮やかに調整）
+    const COLORS = {
+      I: '#8ecfe8',  // スカイブルー（少し深め）
+      T: '#b8a4f8',  // ラベンダー（少し鮮やか）
+      L: '#5ec9b0',  // ティール（鮮やかに）
+      J: '#4a9fd4',  // オーシャンブルー
+      O: '#f9c784',  // サンドピーチ（少し濃く）
+      S: '#8ddec0',  // ミント
+      Z: '#f5a0b8',  // ソフトピンク（少し鮮やか）
+    };
 
-    ctx.fillStyle = '#3d6b8a';
-    ctx.strokeStyle = '#2d5a75';
-    ctx.lineWidth = 4;
-    for (let row = 0; row < 4; row++) {
-      for (let col = 0; col < 4; col++) {
-        const x = pad + col * (block + gap);
-        const y = pad + row * (block + gap);
-        ctx.fillRect(x, y, block, block);
-        ctx.strokeRect(x, y, block, block);
+    // 上段：暖色（ラベンダー・ピーチ・ピンク）→ 空・水面イメージ
+    // 下段：寒色（ティール・ブルー）→ 深海イメージ
+    const GRID = [
+      [null, 'T',  'T',  null],
+      ['Z',  'T',  'O',  'O' ],
+      ['Z',  'Z',  'O',  'S' ],
+      ['L',  'J',  'S',  'S' ],
+      ['L',  'J',  'L',  'I' ],
+    ];
+
+    const COLS = 4;
+    const ROWS = GRID.length;
+    const CELL = 90;
+    const GAP  = 7;
+    const RADIUS = CELL * 0.18;
+
+    const gridW = COLS * CELL + (COLS - 1) * GAP;
+    const gridH = ROWS * CELL + (ROWS - 1) * GAP;
+    const OX = (SIZE - gridW) / 2;
+    const OY = (SIZE - gridH) / 2 + 8; // 少し下にオフセット
+
+    // ── 背景：深海グラデーション ──────────────────────
+    const seaBg = ctx.createLinearGradient(0, 0, SIZE * 0.25, SIZE);
+    seaBg.addColorStop(0,    '#0c2545');  // 海面近く：深い青
+    seaBg.addColorStop(0.4,  '#0e3460');  // 中層：鮮やかな深海ブルー
+    seaBg.addColorStop(0.75, '#0b2040');  // 深層
+    seaBg.addColorStop(1,    '#071628');  // 海底
+    ctx.fillStyle = seaBg;
+    ctx.fillRect(0, 0, SIZE, SIZE);
+
+    // 水面の光の揺らぎ（上部に横方向の反射）
+    const surfaceGrad = ctx.createLinearGradient(0, 0, 0, SIZE * 0.38);
+    surfaceGrad.addColorStop(0,   'rgba(100, 200, 255, 0.32)');
+    surfaceGrad.addColorStop(0.4, 'rgba(80, 170, 255, 0.12)');
+    surfaceGrad.addColorStop(1,   'rgba(60, 140, 255, 0)');
+    ctx.fillStyle = surfaceGrad;
+    ctx.fillRect(0, 0, SIZE, SIZE);
+
+    // 波ライン（サイン波を4本、メリハリあり）
+    function drawWave(yBase, amplitude, freq, phaseShift, opacity, lineWidth) {
+      ctx.beginPath();
+      for (let x = 0; x <= SIZE; x += 1.5) {
+        const y = yBase + Math.sin(x * freq + phaseShift) * amplitude;
+        x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = `rgba(120, 210, 255, ${opacity})`;
+      ctx.lineWidth = lineWidth;
+      ctx.stroke();
+    }
+    drawWave(SIZE * 0.16, 9,  0.032, 0.0,  0.38, 2.2); // メイン波（目立つ）
+    drawWave(SIZE * 0.23, 7,  0.024, 1.2,  0.25, 1.8); // 2番波
+    drawWave(SIZE * 0.10, 5,  0.044, 2.5,  0.18, 1.4); // 細波
+    drawWave(SIZE * 0.29, 4,  0.018, 0.7,  0.13, 1.2); // 遠波
+
+    // 波の下に淡い青帯（水面感を強調）
+    const waveUnder = ctx.createLinearGradient(0, SIZE * 0.12, 0, SIZE * 0.35);
+    waveUnder.addColorStop(0, 'rgba(80, 160, 255, 0.14)');
+    waveUnder.addColorStop(1, 'rgba(80, 160, 255, 0)');
+    ctx.fillStyle = waveUnder;
+    ctx.fillRect(0, SIZE * 0.12, SIZE, SIZE * 0.23);
+
+    // 海中の光の柱（2本、水面から差し込む）
+    function drawLightRay(x1Top, x2Top, x1Bot, x2Bot, yBot, opacity) {
+      const rayGrad = ctx.createLinearGradient(0, 0, 0, yBot);
+      rayGrad.addColorStop(0,   `rgba(160, 230, 255, ${opacity})`);
+      rayGrad.addColorStop(0.6, `rgba(130, 200, 255, ${opacity * 0.4})`);
+      rayGrad.addColorStop(1,   'rgba(100, 180, 255, 0)');
+      ctx.fillStyle = rayGrad;
+      ctx.beginPath();
+      ctx.moveTo(x1Top * SIZE, 0);
+      ctx.lineTo(x2Top * SIZE, 0);
+      ctx.lineTo(x2Bot * SIZE, yBot);
+      ctx.lineTo(x1Bot * SIZE, yBot);
+      ctx.closePath();
+      ctx.fill();
+    }
+    drawLightRay(0.22, 0.38, 0.48, 0.14, SIZE * 0.72, 0.13); // 左の大きい柱
+    drawLightRay(0.55, 0.65, 0.70, 0.58, SIZE * 0.55, 0.09); // 右の細い柱
+
+    // 深部のティールグロー（ゲームボードの雰囲気）
+    const glow = ctx.createRadialGradient(SIZE / 2, SIZE * 0.75, 0, SIZE / 2, SIZE * 0.75, SIZE * 0.5);
+    glow.addColorStop(0, 'rgba(45, 212, 191, 0.18)');
+    glow.addColorStop(1, 'rgba(45, 212, 191, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, SIZE, SIZE);
+
+    // 上部パープルグロー（Tピース演出）
+    const glowTop = ctx.createRadialGradient(SIZE * 0.7, SIZE * 0.28, 0, SIZE * 0.7, SIZE * 0.28, SIZE * 0.35);
+    glowTop.addColorStop(0, 'rgba(196, 181, 253, 0.10)');
+    glowTop.addColorStop(1, 'rgba(196, 181, 253, 0)');
+    ctx.fillStyle = glowTop;
+    ctx.fillRect(0, 0, SIZE, SIZE);
+
+    // ── ブロック描画関数 ──────────────────────────────
+    function drawBlock(px, py, color, glowColor) {
+      const r = CELL * 0.14; // 丸みは中間（キャンディ寄りだが少し引き締め）
+
+      // 影
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.48)';
+      ctx.beginPath();
+      ctx.roundRect(px + CELL * 0.06, py + CELL * 0.1, CELL, CELL, r);
+      ctx.fill();
+
+      // メインブロック（グラデーション）
+      const g = ctx.createLinearGradient(px, py, px + CELL * 0.5, py + CELL);
+      g.addColorStop(0, lighten(color, 28));
+      g.addColorStop(1, darken(color, 20));
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.roundRect(px, py, CELL, CELL, r);
+      ctx.fill();
+
+      // ボーダー
+      ctx.strokeStyle = darken(color, 32);
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.roundRect(px, py, CELL, CELL, r);
+      ctx.stroke();
+
+      // 上部ハイライト（水面の光の反射っぽく）
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.38)';
+      ctx.beginPath();
+      ctx.roundRect(px + CELL * 0.1, py + CELL * 0.08, CELL * 0.78, CELL * 0.24, r * 0.6);
+      ctx.fill();
+
+      // 左エッジの細い光
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.20)';
+      ctx.beginPath();
+      ctx.roundRect(px + CELL * 0.1, py + CELL * 0.1, CELL * 0.09, CELL * 0.62, r * 0.4);
+      ctx.fill();
+
+      // グロー
+      if (glowColor) {
+        ctx.shadowColor = glowColor;
+        ctx.shadowBlur = 22;
+        ctx.strokeStyle = glowColor;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.roundRect(px, py, CELL, CELL, r);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
       }
     }
 
+    // カラーユーティリティ
+    function hexToRgb(hex) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return [r, g, b];
+    }
+    function lighten(hex, amount) {
+      const [r, g, b] = hexToRgb(hex);
+      return `rgb(${Math.min(255, r + amount)}, ${Math.min(255, g + amount)}, ${Math.min(255, b + amount)})`;
+    }
+    function darken(hex, amount) {
+      const [r, g, b] = hexToRgb(hex);
+      return `rgb(${Math.max(0, r - amount)}, ${Math.max(0, g - amount)}, ${Math.max(0, b - amount)})`;
+    }
+
+    // ── グリッドを描画 ────────────────────────────────
+    for (let row = 0; row < ROWS; row++) {
+      for (let col = 0; col < COLS; col++) {
+        const type = GRID[row][col];
+        if (!type) continue;
+
+        const px = OX + col * (CELL + GAP);
+        const py = OY + row * (CELL + GAP);
+        const color = COLORS[type];
+
+        // 最下行はティールのグロー（クリア直前感）
+        const glowColor = (row === ROWS - 1) ? 'rgba(45, 212, 191, 0.7)' : null;
+        drawBlock(px, py, color, glowColor);
+      }
+    }
+
+    // ── 最下行に「ライン完成」エフェクト ──────────────
+    const lineY = OY + (ROWS - 1) * (CELL + GAP);
+    const lineGrad = ctx.createLinearGradient(OX, lineY, OX + gridW, lineY);
+    lineGrad.addColorStop(0, 'rgba(45, 212, 191, 0)');
+    lineGrad.addColorStop(0.5, 'rgba(45, 212, 191, 0.18)');
+    lineGrad.addColorStop(1, 'rgba(45, 212, 191, 0)');
+    ctx.fillStyle = lineGrad;
+    ctx.fillRect(OX - 10, lineY - 5, gridW + 20, CELL + 10);
+
+    // ── 保存機能 ─────────────────────────────────────
     function download(w) {
       const can = document.createElement('canvas');
       can.width = can.height = w;
       const cx = can.getContext('2d');
-      cx.drawImage(c, 0, 0, size, size, 0, 0, w, w);
+      cx.drawImage(c, 0, 0, SIZE, SIZE, 0, 0, w, w);
       const a = document.createElement('a');
       a.download = 'icon-' + w + '.png';
       a.href = can.toDataURL('image/png');
