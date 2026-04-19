@@ -152,7 +152,8 @@ body::before {
 
 .title-section {
   margin-bottom: 25px;
-  padding-top: 10px;
+  /* ステータスバー直下の圧迫感を減らす（.screen の safe-area に加算） */
+  padding-top: clamp(18px, 5vmin, 40px);
 }
 
 .title-section h1 {
@@ -906,15 +907,14 @@ body.theme-dark .tutorial-step-indicator {
 }
 
 .mobile-header {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-around;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
   align-items: center;
-  gap: 6px 8px;
+  gap: 6px 6px;
   background: var(--glass);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--glass-border);
-  padding: 8px 15px;
+  padding: 8px 12px;
   flex-shrink: 0;
   min-height: 65px;
 }
@@ -1071,7 +1071,7 @@ body.theme-dark .tutorial-step-indicator {
 .mobile-board-with-panels {
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   width: 100%;
   min-height: 0;
@@ -1084,8 +1084,9 @@ body.theme-dark .tutorial-step-indicator {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding-top: 10px;
+  padding: 4px 0;
 }
 
 /* HOLDボタン（サイドパネル版） */
@@ -1142,7 +1143,7 @@ body.theme-dark .hold-side-btn {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-left: auto;
+  justify-self: end;
 }
 
 /* ★修正: 表示サイズは JS の adjustMobileCanvasSize() に任せ、1:2 アスペクトを維持（潰れ防止） */
