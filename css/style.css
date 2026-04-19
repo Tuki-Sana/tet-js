@@ -2,6 +2,7 @@
 
 /* ========== ライトテーマ（海＋砂浜） ========== */
 :root {
+  --board-bg: linear-gradient(160deg, #f5f0e8 0%, #ebe0cc 100%);
   --primary: #5AB2FF;
   --primary-hover: #3d9ae8;
   --secondary: #A0DEFF;
@@ -36,6 +37,7 @@
 
 /* ========== ダークテーマ（深海ネイビー・洗練） ========== */
 body.theme-dark {
+  --board-bg: linear-gradient(165deg, #0c2545 0%, #0e3460 45%, #071628 100%);
   --primary: #2dd4bf;
   --primary-hover: #5eead4;
   --secondary: #94a3b8;
@@ -753,7 +755,7 @@ body.theme-dark .tutorial-step-indicator {
   border: 3px solid var(--secondary);
   border-radius: 8px;
   box-shadow: var(--glow-primary), var(--shadow);
-  background: #000;
+  background: transparent;
 }
 
 .next-panel {

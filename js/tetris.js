@@ -953,10 +953,59 @@ class Tetris {
   // ★修正: ゲーム描画処理（グリッドサイズ対応）
   draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    
+
+    // ── ボード背景（テーマ別、JS描画） ──────────────────
+    const isDark = document.body.classList.contains('theme-dark');
+    const W = this.canvas.width;
+    const H = this.canvas.height;
+
+    if (isDark) {
+      // 深海グラデーション（アイコンと同系統）
+      const bg = this.ctx.createLinearGradient(0, 0, W * 0.3, H);
+      bg.addColorStop(0,    '#0c2545');
+      bg.addColorStop(0.45, '#0e3460');
+      bg.addColorStop(1,    '#071628');
+      this.ctx.fillStyle = bg;
+      this.ctx.fillRect(0, 0, W, H);
+
+      // 水面シマー（上部）
+      const surf = this.ctx.createLinearGradient(0, 0, 0, H * 0.22);
+      surf.addColorStop(0, 'rgba(100, 200, 255, 0.14)');
+      surf.addColorStop(1, 'rgba(100, 200, 255, 0)');
+      this.ctx.fillStyle = surf;
+      this.ctx.fillRect(0, 0, W, H * 0.22);
+
+      // 波ライン（2本、上部のみ）
+      this.ctx.lineWidth = 1;
+      [{ y: H * 0.07, amp: 2.5, freq: 0.12, phase: 0,   op: 0.28 },
+       { y: H * 0.13, amp: 2.0, freq: 0.09, phase: 1.4, op: 0.18 }].forEach(w => {
+        this.ctx.strokeStyle = `rgba(120, 210, 255, ${w.op})`;
+        this.ctx.beginPath();
+        for (let x = 0; x <= W; x += 2) {
+          const y = w.y + Math.sin(x * w.freq + w.phase) * w.amp;
+          x === 0 ? this.ctx.moveTo(x, y) : this.ctx.lineTo(x, y);
+        }
+        this.ctx.stroke();
+      });
+    } else {
+      // 砂浜：暖かみのあるベージュグラデーション
+      const bg = this.ctx.createLinearGradient(0, 0, W, H);
+      bg.addColorStop(0, '#f5f0e8');
+      bg.addColorStop(1, '#ebe0cc');
+      this.ctx.fillStyle = bg;
+      this.ctx.fillRect(0, 0, W, H);
+
+      // 浜辺の陽光スポット（上部から柔らかく）
+      const spot = this.ctx.createRadialGradient(W * 0.5, 0, 0, W * 0.5, 0, H * 0.6);
+      spot.addColorStop(0, 'rgba(255, 255, 255, 0.18)');
+      spot.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      this.ctx.fillStyle = spot;
+      this.ctx.fillRect(0, 0, W, H);
+    }
+
     // モバイルでは細いグリッド
     if (!this.isMobile) {
-      this.ctx.strokeStyle = '#333';
+      this.ctx.strokeStyle = isDark ? 'rgba(30, 80, 130, 0.35)' : 'rgba(180, 155, 115, 0.22)';
       this.ctx.lineWidth = 1;
       for (let i = 0; i <= 10; i++) {
         this.ctx.beginPath();
