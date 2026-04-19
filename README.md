@@ -127,7 +127,7 @@ tet-js/
 - デスクトップ表示で試すときは `?desktop=true` を付ける。
 - デプロイ時は `js/config.js` の `APP_VERSION` と `sw.js` の `CACHE_VERSION` を同じ値に。スタート画面に v を表示。（モバイルシェルや盤サイズを変えたあと、古い CSS が Service Worker に残っていると見た目がずれることがある）
 - テスト一式: `npm test`（`test:unit` のあと `test:e2e`）。GitHub Actions も同じです。
-- ユニットのみ: `npm run test:unit`（`node --test test/unit/**/*.test.mjs`）。
+- ユニットのみ: `npm run test:unit`（`node --test test/unit/*.test.mjs`。`**` は CI の sh で展開されないためワイルドカードは 1 段のみ）。
 - E2E: `npm run test:e2e`。初回は `npx playwright install chromium firefox webkit`（モバイル含む全体なら `npx playwright install --with-deps` 推奨）。個別: `test:e2e:chromium` / `webkit` / `firefox` / `test:e2e:mobile`（Pixel 5 のみ）。`test:e2e:ui` で UI モード。WebKit は **Safari と同系エンジン**であって **Safari.app そのものではない**。
 - **GitHub Actions**: `main` / `master` への `push` と `pull_request` で `.github/workflows/test.yml` が実行されます。
 - **BGM**: 魔王魂（[魔王魂](https://maou.audio)）。8bit29（通常）と 8bit25（ピンチ時）。

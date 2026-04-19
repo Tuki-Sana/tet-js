@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "icons:export": "node scripts/export-pwa-icons.cjs",
-    "test:unit": "node --test test/unit/**/*.test.mjs",
+    "test:unit": "node --test test/unit/*.test.mjs",
     "test:e2e": "playwright test",
     "test:e2e:chromium": "playwright test --project=chromium",
     "test:e2e:webkit": "playwright test --project=webkit",
